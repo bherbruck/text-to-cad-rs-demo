@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model IR (TypeScript SDK → Rust engine) · text-to-cad</title>
+
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="index.html" aria-current="page">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../skills/cad.html">CAD modeling and inspection</a></li><li><a href="../skills/fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../skills/pcb.html">Circuit boards</a></li><li><a href="../skills/render.html">Renders for people</a></li><li><a href="../skills/robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="api.html">Server API (cad server)</a></li><li><a href="cli.html">cad command line</a></li><li><a href="index.html">Documentation</a></li><li><a href="install.html">Installing text-to-cad-rs</a></li><li class="current"><a href="ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="licenses.html">Licences</a></li><li><a href="quality-report.html">Workspace quality report</a></li><li><a href="robots.html">Robot descriptions</a></li><li><a href="security.html">Security and resource limits</a></li><li><a href="test-port.html">Porting the original test suite</a></li><li><a href="test-status.html">Test status</a></li></ul></div></aside><main><h1 id="model-ir-typescript-sdk-rust-engine"><a class="anchor" href="#model-ir-typescript-sdk-rust-engine" aria-hidden="true">#</a>Model IR (TypeScript SDK → Rust engine)</h1>
+<p>A model script (TypeScript, run by <code>cad run</code>) builds a lazy op graph with <code>@cad/sdk</code>. Calling a
+model posts its graph to the server (<code>POST /api/build</code>), which evaluates it on the active kernel
+with a content-hash memo cache. The SDK computes <strong>no geometry</strong>; everything numeric about the
+result comes back from the server.</p>
+<p>Units: millimetres, degrees. +Z up. Points/vectors are <code>[x, y, z]</code>.</p>
+<h2 id="envelope"><a class="anchor" href="#envelope" aria-hidden="true">#</a>Envelope</h2>
+<pre class="code" data-lang="json"><button class="copy" type="button" aria-label="Copy">Copy</button><code>{
+  <span class="t-s">"version"</span>: <span class="t-n">1</span>,
+  <span class="t-s">"script"</span>: <span class="t-s">"/abs/path/src/bracket.ts"</span>,
+  <span class="t-s">"model"</span>: <span class="t-s">"bracket"</span>,
+  <span class="t-s">"params"</span>: [{ <span class="t-s">"name"</span>: <span class="t-s">"wall"</span>, <span class="t-s">"value"</span>: <span class="t-n">2</span>, <span class="t-s">"min"</span>: <span class="t-n">1</span>, <span class="t-s">"max"</span>: <span class="t-n">5</span>, <span class="t-s">"step"</span>: <span class="t-n">0.5</span>, <span class="t-s">"unit"</span>: <span class="t-s">"mm"</span>, <span class="t-s">"description"</span>: <span class="t-s">""</span> }],
+  <span class="t-s">"nodes"</span>: [ { <span class="t-s">"op"</span>: <span class="t-s">"box"</span>, <span class="t-s">"args"</span>: { <span class="t-s">"size"</span>: [<span class="t-n">40</span>, <span class="t-n">20</span>, <span class="t-n">6</span>] }, <span class="t-s">"in"</span>: [], <span class="t-s">"src"</span>: <span class="t-s">"src/bracket.ts:7"</span> } ],
+  <span class="t-s">"root"</span>: <span class="t-n">0</span>
+}</code></pre>
+<ul><li><code>nodes</code> is topologically ordered; <code>in</code> holds indices of earlier nodes.</li><li><code>src</code> is <code>relative/path.ts:line</code> of the user code that created the node (from the JS stack,<p>skipping SDK frames). Used for <code>made_by</code> in inspection and in error messages.</p></li><li>The node hash is <code>sha256(op, canonical args, input hashes)</code>; equal subgraphs are cached across<p>runs and across models.</p></li><li><code>root</code> must evaluate to a shape, part or assembly.</li></ul>
+<h2 id="value-kinds"><a class="anchor" href="#value-kinds" aria-hidden="true">#</a>Value kinds</h2>
+<div class="table"><table><thead><tr><th>Kind</th><th>Produced by</th></tr></thead><tbody><tr><td>shape</td><td>every geometry op</td></tr><tr><td>part</td><td><code>part</code> (a shape + label/colour/material)</td></tr><tr><td>assembly</td><td><code>assembly</code> (parts and sub-assemblies, with a label)</td></tr></tbody></table></div>
+<p>Geometry ops accept a part or assembly as input and use its shape (an assembly's compound).
+<code>transform</code> on a part/assembly keeps the labels and colours.</p>
+<h2 id="ops"><a class="anchor" href="#ops" aria-hidden="true">#</a>Ops</h2>
+<p><code>align</code> is a 3-array of <code>&quot;min&quot; | &quot;center&quot; | &quot;max&quot;</code> per axis, default <code>[&quot;center&quot;,&quot;center&quot;,&quot;center&quot;]</code>
+(build123d's default) — except where noted.</p>
+<div class="table"><table><thead><tr><th>op</th><th>in</th><th>args</th></tr></thead><tbody><tr><td><code>box</code></td><td>–</td><td><code>size: V3</code>, <code>align?</code></td></tr><tr><td><code>cylinder</code></td><td>–</td><td><code>radius</code>, <code>height</code>, <code>align?</code> (Z axis)</td></tr><tr><td><code>cone</code></td><td>–</td><td><code>r1</code> (bottom), <code>r2</code> (top), <code>height</code>, <code>align?</code></td></tr><tr><td><code>sphere</code></td><td>–</td><td><code>radius</code></td></tr><tr><td><code>torus</code></td><td>–</td><td><code>major</code>, <code>minor</code> (Z axis, centred on origin)</td></tr><tr><td><code>wire</code></td><td>–</td><td><code>segments: Segment[]</code></td></tr><tr><td><code>face</code></td><td>–</td><td><code>outer: Segment[]</code>, <code>holes?: Segment[][]</code> (planar, closed loops)</td></tr><tr><td><code>helix</code></td><td>–</td><td><code>radius</code>, <code>pitch</code>, <code>height</code>, <code>left?: bool</code></td></tr><tr><td><code>extrude</code></td><td>[profile]</td><td><code>by: V3</code>, <code>taper?: deg</code></td></tr><tr><td><code>revolve</code></td><td>[profile]</td><td><code>axis: {origin, dir}</code>, <code>degrees</code></td></tr><tr><td><code>loft</code></td><td>[sections…]</td><td><code>solid?: bool = true</code>, <code>ruled?: bool</code></td></tr><tr><td><code>sweep</code></td><td>[profile, path]</td><td><code>binormal?: V3</code></td></tr><tr><td><code>fuse</code></td><td>[a, b, …]</td><td>–</td></tr><tr><td><code>cut</code></td><td>[a, tool, …]</td><td>–</td></tr><tr><td><code>common</code></td><td>[a, b, …]</td><td>–</td></tr><tr><td><code>transform</code></td><td>[a]</td><td><code>xform: Xform</code></td></tr><tr><td><code>fillet</code></td><td>[a]</td><td><code>edges: Selector</code>, <code>radius</code></td></tr><tr><td><code>chamfer</code></td><td>[a]</td><td><code>edges: Selector</code>, <code>distance</code></td></tr><tr><td><code>shell</code></td><td>[a]</td><td><code>faces: Selector</code> (removed/opened), <code>thickness</code> (negative = inward, the usual)</td></tr><tr><td><code>offset</code></td><td>[a]</td><td><code>distance</code></td></tr><tr><td><code>section</code></td><td>[a]</td><td><code>plane: {origin, normal}</code></td></tr><tr><td><code>split</code></td><td>[a]</td><td><code>plane</code>, <code>keep: &quot;above&quot; | &quot;below&quot; | &quot;both&quot;</code> (above = side the normal points to)</td></tr><tr><td><code>compound</code></td><td>[a, …]</td><td>–</td></tr><tr><td><code>import</code></td><td>–</td><td><code>path</code> (relative to the script's dir or absolute), <code>format?: &quot;step&quot; | &quot;stl&quot;</code></td></tr><tr><td><code>part</code></td><td>[shape]</td><td><code>label</code>, <code>color?: &quot;#rrggbb&quot;</code>, <code>material?: { name, density }</code> (g/cm³), <code>designation?: string</code> (what it is bought as, e.g. <code>&quot;ISO 4762 M5x25&quot;</code>, for a bill of materials; carried to <code>PartInfo.designation</code>)</td></tr><tr><td><code>assembly</code></td><td>[part | assembly, …]</td><td><code>label</code>, <code>joints?: Joint[]</code>, <code>couplings?: Coupling[]</code>, <code>poses?: { [pose]: { [joint]: number } }</code>, <code>animations?: Animation[]</code> (<a href="#joints">Joints</a>, <a href="#couplings">Couplings</a>, <a href="#animations">Animations</a>)</td></tr></tbody></table></div>
+<h3 id="segment"><a class="anchor" href="#segment" aria-hidden="true">#</a>Segment</h3>
+<pre class="code" data-lang="json"><button class="copy" type="button" aria-label="Copy">Copy</button><code>{ <span class="t-s">"type"</span>: <span class="t-s">"line"</span>, <span class="t-s">"a"</span>: V3, <span class="t-s">"b"</span>: V3 }
+{ <span class="t-s">"type"</span>: <span class="t-s">"arc"</span>, <span class="t-s">"a"</span>: V3, <span class="t-s">"mid"</span>: V3, <span class="t-s">"b"</span>: V3 }
+{ <span class="t-s">"type"</span>: <span class="t-s">"circle"</span>, <span class="t-s">"center"</span>: V3, <span class="t-s">"normal"</span>: V3, <span class="t-s">"radius"</span>: r }
+{ <span class="t-s">"type"</span>: <span class="t-s">"spline"</span>, <span class="t-s">"points"</span>: [V3…], <span class="t-s">"closed"</span>: <span class="t-k">false</span> }</code></pre>
+<h3 id="xform"><a class="anchor" href="#xform" aria-hidden="true">#</a>Xform</h3>
+<pre class="code" data-lang="json"><button class="copy" type="button" aria-label="Copy">Copy</button><code>{ <span class="t-s">"type"</span>: <span class="t-s">"translate"</span>, <span class="t-s">"by"</span>: V3 }
+{ <span class="t-s">"type"</span>: <span class="t-s">"rotate"</span>, <span class="t-s">"axis"</span>: { <span class="t-s">"origin"</span>: V3, <span class="t-s">"dir"</span>: V3 }, <span class="t-s">"degrees"</span>: d }
+{ <span class="t-s">"type"</span>: <span class="t-s">"scale"</span>, <span class="t-s">"center"</span>: V3, <span class="t-s">"factor"</span>: f }
+{ <span class="t-s">"type"</span>: <span class="t-s">"mirror"</span>, <span class="t-s">"plane"</span>: { <span class="t-s">"origin"</span>: V3, <span class="t-s">"normal"</span>: V3 } }</code></pre>
+<h3 id="selector"><a class="anchor" href="#selector" aria-hidden="true">#</a>Selector</h3>
+<p>Selects faces or edges of the input shape, evaluated by the engine on kernel-reported
+<code>FaceInfo</code>/<code>EdgeInfo</code>. The SDK also parses CadQuery-style strings into these:
+<code>&quot;&gt;Z&quot;</code>, <code>&quot;&lt;X&quot;</code>, <code>&quot;|Z&quot;</code>, <code>&quot;#Z&quot;</code>, <code>&quot;%LINE&quot;</code>, <code>&quot;%CIRCLE&quot;</code>, <code>&quot;%PLANE&quot;</code>, <code>&quot;%CYLINDER&quot;</code>, combined with
+<code>and</code>, <code>or</code>, <code>not</code> and parentheses, e.g. <code>&quot;|Z and &gt;X&quot;</code>.</p>
+<pre class="code" data-lang="json"><button class="copy" type="button" aria-label="Copy">Copy</button><code>{ <span class="t-s">"kind"</span>: <span class="t-s">"all"</span> }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"index"</span>, <span class="t-s">"indices"</span>: [<span class="t-n">0</span>, <span class="t-n">3</span>] }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"dir"</span>, <span class="t-s">"dir"</span>: V3, <span class="t-s">"mode"</span>: <span class="t-s">"max"</span> | <span class="t-s">"min"</span> | <span class="t-s">"parallel"</span> | <span class="t-s">"perpendicular"</span> }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"type"</span>, <span class="t-s">"type"</span>: <span class="t-s">"line"</span> | <span class="t-s">"circle"</span> | <span class="t-s">"ellipse"</span> | <span class="t-s">"spline"</span> | <span class="t-s">"plane"</span> | <span class="t-s">"cylinder"</span> | <span class="t-s">"cone"</span> | <span class="t-s">"sphere"</span> | <span class="t-s">"torus"</span> }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"near"</span>, <span class="t-s">"point"</span>: V3, <span class="t-s">"count"</span>: <span class="t-n">1</span> }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"inside"</span>, <span class="t-s">"min"</span>: V3, <span class="t-s">"max"</span>: V3 }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"radius"</span>, <span class="t-s">"min"</span>: r, <span class="t-s">"max"</span>: r }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"and"</span>, <span class="t-s">"of"</span>: [Selector…] }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"or"</span>, <span class="t-s">"of"</span>: [Selector…] }
+{ <span class="t-s">"kind"</span>: <span class="t-s">"not"</span>, <span class="t-s">"of"</span>: Selector }</code></pre>
+<p>Semantics, with <code>d</code> the unit direction:</p>
+<ul><li><code>max</code>/<code>min</code>: the items whose centre's projection on <code>d</code> is within 1e-4·size of the largest /<p>smallest (any face or edge type, as CadQuery). <code>&gt;Z</code> faces is a box's top face; <code>&gt;Z</code> edges are
+its four top edges.</p></li><li><code>parallel</code> (<code>|</code>): edges that are lines along <code>d</code>; faces that are planes with normal ±<code>d</code>.<p><code>|Z</code> edges are the vertical edges of a box.</p></li><li><code>perpendicular</code> (<code>#</code>): edges that are lines ⟂ <code>d</code>; planar faces whose normal ⟂ <code>d</code><p>(<code>#Z</code> faces are a box's four sides).</p></li><li>Directions compare with a 1e-6 tolerance on the unit vectors' cross/dot products.</li></ul>
+<h2 id="joints"><a class="anchor" href="#joints" aria-hidden="true">#</a>Joints</h2>
+<p>An assembly that is a mechanism declares its joints and named poses in its own args. Its parts are
+built <strong>where they stand</strong>: the geometry is the mechanism at every joint's <code>default</code> (its as-built
+value). Nothing about a joint changes the built geometry or any export; posing is on demand
+(<code>--pose</code>, the viewer's sliders, <code>cad model ranges</code>).</p>
+<pre class="code" data-lang="json"><button class="copy" type="button" aria-label="Copy">Copy</button><code>{ <span class="t-s">"op"</span>: <span class="t-s">"assembly"</span>, <span class="t-s">"in"</span>: [<span class="t-n">3</span>, <span class="t-n">7</span>], <span class="t-s">"args"</span>: {
+    <span class="t-s">"label"</span>: <span class="t-s">"box"</span>,
+    <span class="t-s">"joints"</span>: [
+      { <span class="t-s">"name"</span>: <span class="t-s">"lid"</span>, <span class="t-s">"type"</span>: <span class="t-s">"revolute"</span>, <span class="t-s">"parent"</span>: <span class="t-s">"tray"</span>, <span class="t-s">"child"</span>: <span class="t-s">"lid"</span>,
+        <span class="t-s">"axis"</span>: { <span class="t-s">"origin"</span>: [<span class="t-n">0</span>, <span class="t-n">30</span>, <span class="t-n">40</span>], <span class="t-s">"dir"</span>: [-<span class="t-n">1</span>, <span class="t-n">0</span>, <span class="t-n">0</span>] }, <span class="t-s">"limits"</span>: { <span class="t-s">"min"</span>: <span class="t-n">0</span>, <span class="t-s">"max"</span>: <span class="t-n">110</span> } }
+    ],
+    <span class="t-s">"poses"</span>: { <span class="t-s">"closed"</span>: { <span class="t-s">"lid"</span>: <span class="t-n">0</span> }, <span class="t-s">"open"</span>: { <span class="t-s">"lid"</span>: <span class="t-n">100</span> } } } }</code></pre>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> Joint = {
+  name: string;                               <span class="t-c">// unique within the assembly</span>
+  <span class="t-k">type</span>: <span class="t-s">"revolute"</span> | <span class="t-s">"prismatic"</span> | <span class="t-s">"cylindrical"</span> | <span class="t-s">"ball"</span> | <span class="t-s">"fixed"</span>;
+  parent: string;                             <span class="t-c">// what holds the joint: a child label of this assembly,</span>
+  child: string;                              <span class="t-c">//   or a "/" path into a sub-assembly ("arm/forearm");</span>
+                                              <span class="t-c">//   the child moves with everything below it</span>
+  axis?: { origin: V3; dir: V3 };             <span class="t-c">// required unless fixed; this assembly's coordinates as built</span>
+  limits?: { min: number; max: number };      <span class="t-c">// in the joint's values</span>
+  <span class="t-k">default</span>?: number;                           <span class="t-c">// the value the geometry is drawn at (0)</span>
+  slideLimits?: { min: number; max: number }; <span class="t-c">// cylindrical: the slide's limits</span>
+  slideDefault?: number;                      <span class="t-c">// cylindrical: the slide's as-built value</span>
+  effort?: number;                            <span class="t-c">// revolute/prismatic: most torque N·mm / force N (robot descriptions)</span>
+  velocity?: number;                          <span class="t-c">// revolute/prismatic: top speed deg/s / mm/s (robot descriptions)</span>
+};</code></pre>
+<ul><li><strong>Values</strong>: a revolute turns its child by <code>value - default</code> degrees about <code>axis</code>, right-handed<p>about <code>dir</code>; a prismatic slides it <code>value - default</code> mm along <code>dir</code>. A fixed joint takes no value:
+it fastens the child to the parent's link (it then moves with whatever moves the parent).</p></li><li><strong>Multi-axis joints</strong> are posed by their degrees of freedom, each a single-axis joint of the<p>document riding on the one before it: a <code>cylindrical</code> joint is <code>&lt;name&gt;.turn</code> (degrees, <code>limits</code>,
+<code>default</code>) and <code>&lt;name&gt;.slide</code> (mm, <code>slideLimits</code>, <code>slideDefault</code>) on one axis; a <code>ball</code> joint is
+<code>&lt;name&gt;.x</code>, <code>&lt;name&gt;.y</code>, <code>&lt;name&gt;.z</code> (degrees, each within <code>limits</code>, as built at 0), turns about axes
+through <code>axis.origin</code>: z is <code>axis.dir</code>, x a perpendicular to it (world X made perpendicular, or
+world Y when z is near X), y = z × x; x first, then y, then z, each about its axis as moved by the
+ones before. A joint name may not contain <code>.</code>.</p></li><li><strong>Chains</strong>: a joint whose <code>parent</code> lies in another joint's child rides on it: posing moves the<p>outer joint's child, its axis and everything on it. A part's placement is its chain of joints
+applied innermost first, each about its axis as built. Each part is placed by at most one joint
+of an assembly; a loop (a joint that would move its own parent) is refused.</p></li><li><strong>Nested assemblies</strong> keep their own joints; an outer joint whose child is the sub-assembly<p>moves its whole mechanism. <code>transform</code> on an assembly moves its axes too (a mirror reverses a
+revolute's <code>dir</code> so a positive value still turns the mirrored child the mirrored way; a scale
+scales prismatic values).</p></li><li><strong>Names</strong> in the document are the declared names where unique, else<p><code>&lt;assembly path&gt;:&lt;name&gt;</code> (<code>gripper/left:knuckle</code>); pose names the same.</p></li><li><strong>Poses</strong> name joint values (the joints a pose leaves out stay as built). A pose value or<p><code>default</code> outside the joint's <code>limits</code>, an unknown joint, a joint without an axis, two joints
+with one name and a reference to no part are refused when the model builds, by name.</p></li></ul>
+<h2 id="couplings"><a class="anchor" href="#couplings" aria-hidden="true">#</a>Couplings</h2>
+<p>Joints that move together (gears, a rack and pinion, a screw's turn and travel): a follower's value
+is always <code>offset + ratio * leader</code>, so posing the leader poses the follower.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> Coupling = {
+  leader: string;      <span class="t-c">// a joint (or degree of freedom, `hub.turn`) of this assembly</span>
+  follower: string;
+  ratio: number;       <span class="t-c">// follower units per leader unit: gears -r1/r2; rack mm per degree 2πr/360</span>
+  offset?: number;     <span class="t-c">// follower value at leader 0; default: both at their as-built values</span>
+};</code></pre>
+<p>A follower is never posed directly: a pose, an animation key or a <code>--pose</code> that sets it is refused,
+naming its leader. A leader whose value drives a follower outside the follower's limits is refused
+the same way. A joint follows at most one coupling; a leader may itself follow another (no loops).
+<code>cad model ranges</code> sweeps a leader with its followers riding along, and never a follower alone.</p>
+<h2 id="animations"><a class="anchor" href="#animations" aria-hidden="true">#</a>Animations</h2>
+<p>An assembly's own clips, baked into every GLB the model exports as glTF animations (one per
+animation, LINEAR samplers of node translation, rotation and scale at 30 samples a second plus every
+key time): an explode, a reveal, a showcase, the mechanism driven through poses. They change nothing
+else (a snapshot, a STEP, <code>--pose</code> show the model as built).</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> Animation = {
+  name: string; duration: number <span class="t-c">/* s */</span>; loop?: boolean;     <span class="t-c">// loop: kept in the GLB's extras</span>
+  keys?: PoseKey[];          <span class="t-c">// shorthand for one pose track: { kind: "pose", keys }</span>
+  tracks?: Track[];
+};
+<span class="t-k">type</span> PoseKey = { t: number; pose?: string; values?: { [joint]: number } };   <span class="t-c">// one of pose / values</span>
+<span class="t-k">type</span> Track =
+  | { kind: <span class="t-s">"pose"</span>; keys: PoseKey[]; interpolation?: Interp }                 <span class="t-c">// at most one per animation</span>
+  | { kind: <span class="t-s">"translate"</span>; parts: string[]; keys: { t; value: V3 }[]; interpolation?: Interp }      <span class="t-c">// mm offset</span>
+  | { kind: <span class="t-s">"rotate"</span>; parts: string[]; axis: V3; about?: V3; keys: { t; value: number }[]; interpolation?: Interp }  <span class="t-c">// degrees</span>
+  | { kind: <span class="t-s">"scale"</span>; parts: string[]; about?: V3; keys: { t; value: number }[]; interpolation?: Interp };            <span class="t-c">// factor, 0 hides</span>
+<span class="t-k">type</span> Interp = <span class="t-s">"cubic"</span> <span class="t-c">/* default: eased in and out at every key, 3s²-2s³ */</span> | <span class="t-s">"linear"</span> | <span class="t-s">"step"</span>;</code></pre>
+<ul><li><code>parts</code> are names relative to the assembly: a part's label or path (<code>feet/foot_1</code>), an assembly<p>(all its parts), or a glob (<code>feet/*</code>, <code>wheel?</code>; <code>*</code> and <code>?</code> stay within a <code>/</code> segment).</p></li><li><code>about</code> defaults to the centre of the named parts' bounds as built.</li><li>Key times lie in <code>0 .. duration</code>, in order. A part track does nothing before its first key and holds<p>its last; a pose track holds its first key before it. Pose keys name a pose or give joint values (the
+rest as built), within limits, followers excluded; between keys each joint eases on its own.</p></li><li>A part's placement at <code>t</code>: the mechanism posed by the pose track, then its scales, rotations and<p>translations (<code>Tr · Rot · Sc · M_pose</code>); several tracks of one kind on a part compose in track order
+(translations add).</p></li><li>Unknown parts, poses or joints, a value out of limits, times out of range or decreasing, two pose<p>tracks, a nonpositive duration and two animations of one name are refused when the model builds.
+<code>transform</code> on the assembly moves offsets, axes and points with it.</p></li></ul><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/docs/ir.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#envelope">Envelope</a></li><li class="l2"><a href="#value-kinds">Value kinds</a></li><li class="l2"><a href="#ops">Ops</a></li><li class="l3"><a href="#segment">Segment</a></li><li class="l3"><a href="#xform">Xform</a></li><li class="l3"><a href="#selector">Selector</a></li><li class="l2"><a href="#joints">Joints</a></li><li class="l2"><a href="#couplings">Couplings</a></li><li class="l2"><a href="#animations">Animations</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

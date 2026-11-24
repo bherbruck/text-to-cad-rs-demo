@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mechanisms: joints, poses and animations · text-to-cad</title>
+
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../../index.html"><img src="../../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../../docs/index.html">Docs</a><a href="../cad.html" aria-current="page">Skills</a><a href="../../examples/index.html">Examples</a><a href="../../gallery/index.html">Gallery</a><a href="../../cli/index.html">CLI</a><a class="play" href="../../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../../docs/index.html">Docs</a></li><li><a href="../cad.html">Skills</a></li><li><a href="../../examples/index.html">Examples</a></li><li><a href="../../gallery/index.html">Gallery</a></li><li><a href="../../cli/index.html">CLI</a></li><li><a href="../../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../cad.html">CAD modeling and inspection</a></li><li><a href="../fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../pcb.html">Circuit boards</a></li><li><a href="../render.html">Renders for people</a></li><li><a href="../robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>References</h4><ul><li><a href="drawings.html">Engineering drawings</a></li><li><a href="exports.html">Exports</a></li><li><a href="inspection-and-validation.html">Inspecting and checking models</a></li><li><a href="manufacturing-cnc.html">CNC milling</a></li><li><a href="manufacturing-injection-molding.html">Injection molding</a></li><li><a href="manufacturing-printing.html">3D printing</a></li><li><a href="manufacturing-review.html">Manufacturing checks: the result, the review, a redesign</a></li><li><a href="manufacturing-sheet-metal.html">Sheet metal</a></li><li class="current"><a href="mechanisms.html">Mechanisms: joints, poses and animations</a></li><li><a href="model-contract.html">Models</a></li><li><a href="parts.html">Standard parts</a></li><li><a href="sdk-modeling.html">@cad/sdk modeling</a></li><li><a href="selectors.html">Selectors</a></li><li><a href="snapshot-review.html">Snapshots</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="../../docs/api.html">Server API (cad server)</a></li><li><a href="../../docs/cli.html">cad command line</a></li><li><a href="../../docs/index.html">Documentation</a></li><li><a href="../../docs/install.html">Installing text-to-cad-rs</a></li><li><a href="../../docs/ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="../../docs/kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/licenses.html">Licences</a></li><li><a href="../../docs/quality-report.html">Workspace quality report</a></li><li><a href="../../docs/robots.html">Robot descriptions</a></li><li><a href="../../docs/security.html">Security and resource limits</a></li><li><a href="../../docs/test-port.html">Porting the original test suite</a></li><li><a href="../../docs/test-status.html">Test status</a></li></ul></div></aside><main><h1 id="mechanisms-joints-poses-and-animations"><a class="anchor" href="#mechanisms-joints-poses-and-animations" aria-hidden="true">#</a>Mechanisms: joints, poses and animations</h1>
+<p>Read this file when a model moves: a hinge, a slide, an arm, gears that turn together, a lid that
+opens; or when the person wants it posed, checked for clashes through its travel, or animated in a
+GLB. A robot description for simulation (URDF, MJCF, SRDF) is the robot-simulation skill's.</p>
+<h2 id="contents"><a class="anchor" href="#contents" aria-hidden="true">#</a>Contents</h2>
+<ul><li><a href="#joints">Joints</a></li><li><a href="#poses">Poses</a></li><li><a href="#couplings">Couplings</a></li><li><a href="#check-the-travel">Check the travel</a></li><li><a href="#animations">Animations</a></li></ul>
+<h2 id="joints"><a class="anchor" href="#joints" aria-hidden="true">#</a>Joints</h2>
+<p>Build every part <strong>where it stands</strong>: the geometry is the mechanism at each joint's <code>default</code> (its
+as-built value, 0 unless given). An assembly declares its joints in its third argument; nothing
+about a joint changes the built geometry or a STEP.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">import</span> { assembly, box, model, revolute } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">export</span> <span class="t-k">const</span> lidBox = <span class="t-f">model</span>(<span class="t-s">"lid_box"</span>, () =&gt; {
+  <span class="t-k">const</span> tray = <span class="t-f">box</span>(<span class="t-n">60</span>, <span class="t-n">40</span>, <span class="t-n">30</span>, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"min"</span>] }).<span class="t-f">label</span>(<span class="t-s">"tray"</span>);
+  <span class="t-k">const</span> lid = <span class="t-f">box</span>(<span class="t-n">60</span>, <span class="t-n">40</span>, <span class="t-n">4</span>, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"min"</span>] }).<span class="t-f">translate</span>(<span class="t-n">0</span>, <span class="t-n">0</span>, <span class="t-n">30</span>).<span class="t-f">label</span>(<span class="t-s">"lid"</span>);
+  <span class="t-k">return</span> <span class="t-f">assembly</span>(<span class="t-s">"box"</span>, [tray, lid], {
+    joints: [<span class="t-f">revolute</span>(<span class="t-s">"hinge"</span>, { parent: tray, child: lid, axis: { origin: [<span class="t-n">0</span>, <span class="t-n">20</span>, <span class="t-n">34</span>], dir: <span class="t-s">"-X"</span> }, limits: [<span class="t-n">0</span>, <span class="t-n">110</span>] })],
+    poses: { closed: { hinge: <span class="t-n">0</span> }, open: { hinge: <span class="t-n">100</span> } },
+  });
+});</code></pre>
+<div class="table"><table><thead><tr><th>Joint</th><th>Moves the child</th><th>Value</th></tr></thead><tbody><tr><td><code>revolute(name, { parent, child, axis, limits?, default?, effort?, velocity? })</code></td><td>turns about <code>axis</code>, right-handed about its direction</td><td>degrees</td></tr><tr><td><code>prismatic(name, { … same })</code></td><td>slides along <code>axis</code></td><td>mm</td></tr><tr><td><code>cylindrical(name, { …, slideLimits?, slideDefault? })</code></td><td>turns and slides on one axis: <code>&lt;name&gt;.turn</code>, <code>&lt;name&gt;.slide</code></td><td>degrees, mm</td></tr><tr><td><code>ball(name, { parent, child, center, z?, limits? })</code></td><td>turns about three axes: <code>&lt;name&gt;.x</code>, <code>.y</code>, <code>.z</code></td><td>degrees</td></tr><tr><td><code>fixed(name, { parent, child })</code></td><td>fastens the child to the parent's link</td><td>–</td></tr></tbody></table></div>
+<ul><li><code>parent</code> and <code>child</code> are parts or assemblies of this assembly, or a label or <code>/</code> path<p>(<code>&quot;arm/forearm&quot;</code>); the child moves with everything below it.</p></li><li><code>axis</code> is in the assembly's coordinates as built: <code>&quot;Z&quot;</code>, a direction, or <code>{ origin, dir }</code>.</li><li><strong>Chains</strong>: a joint whose parent rides on another joint's child moves with it (a forearm on an<p>upper arm). Each part is placed by at most one joint; a loop is refused.</p></li><li><code>effort</code> (N·mm, or N for a slide) and <code>velocity</code> (deg/s, or mm/s) are the actuator's, written into<p>robot descriptions.</p></li><li><code>cad model inspect &quot;$ID&quot;</code> lists the joints, their limits and the poses.</li></ul>
+<h2 id="poses"><a class="anchor" href="#poses" aria-hidden="true">#</a>Poses</h2>
+<p><code>poses</code> names joint values (<code>{ open: { hinge: 100 } }</code>; joints not named stay as built). Every command
+that draws or measures takes <code>--pose</code> (a pose's name, <code>joint=value,...</code>, or JSON):</p>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model snapshot <span class="t-s">"$ID"</span> tmp/open.png --pose open
+<span class="t-f">cad</span> model snapshot <span class="t-s">"$ID"</span> tmp/half.png --pose hinge=<span class="t-n">55</span></code></pre>
+<p>The viewer shows a slider per joint and a button per pose.</p>
+<h2 id="couplings"><a class="anchor" href="#couplings" aria-hidden="true">#</a>Couplings</h2>
+<p>Joints that move together: <code>couple(leader, follower, ratio, offset?)</code> makes
+<code>follower = offset + ratio · leader</code>. Gears are <code>-r1/r2</code>; a rack and pinion <code>2πr/360</code> mm per degree;
+a screw its lead per 360 degrees. Pass them as <code>couplings: [...]</code>. A follower is never posed directly.</p>
+<h2 id="check-the-travel"><a class="anchor" href="#check-the-travel" aria-hidden="true">#</a>Check the travel</h2>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model ranges <span class="t-s">"$ID"</span>                              <span class="t-c"># each joint's stops, found from the geometry</span>
+<span class="t-f">cad</span> model interference <span class="t-s">"$ID"</span> --pose closed --pose open</code></pre>
+<ul><li><code>cad model ranges</code> moves each joint until its parts meet and reports the range to write into its<p><code>limits</code>, what stops it and any clash (<code>--joint</code>, <code>--step</code>, <code>--clearance</code>). It changes nothing:
+write the limits into the code.</p></li><li>Check interference at each end of each joint's travel <strong>and in between</strong> (<code>--pose hinge=90</code>): a<p>hinge whose axis points the wrong way reaches the right closed pose through the part, and only a
+mid-travel pose or a snapshot shows it. Flip <code>dir</code> (<code>&quot;-X&quot;</code> for <code>&quot;X&quot;</code>) to swing the other way.</p></li><li>A snap fit's barb meets its catch before the closed pose: <code>ranges</code> says so (the stop short of<p>closed). That is the snap, which flexes; report it, don't shorten the travel.</p></li></ul>
+<h2 id="animations"><a class="anchor" href="#animations" aria-hidden="true">#</a>Animations</h2>
+<p><code>animation(name, seconds, { loop? })</code> builds a clip that is baked into every GLB the model exports:</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">const</span> show = <span class="t-f">animation</span>(<span class="t-s">"showcase"</span>, <span class="t-n">4</span>, { loop: <span class="t-k">true</span> })
+  .<span class="t-f">pose</span>({ <span class="t-n">0</span>: <span class="t-s">"closed"</span>, <span class="t-n">1.5</span>: <span class="t-s">"open"</span>, <span class="t-n">3.5</span>: <span class="t-s">"closed"</span> })   <span class="t-c">// the mechanism, eased between keys</span>
+  .<span class="t-f">stagger</span>([<span class="t-s">"feet/foot_1"</span>, <span class="t-s">"feet/foot_2"</span>], { by: [<span class="t-n">0</span>, <span class="t-n">0</span>, -<span class="t-n">20</span>], step: <span class="t-n">0.5</span>, start: <span class="t-n">0.5</span> })
+  .<span class="t-f">rotate</span>(<span class="t-s">"latch"</span>, { axis: <span class="t-s">"Z"</span>, turns: <span class="t-n">2</span>, start: <span class="t-n">1</span>, end: <span class="t-n">3</span>, interpolation: <span class="t-s">"linear"</span> })
+  .<span class="t-f">hide</span>(<span class="t-s">"latch"</span>, <span class="t-n">3</span>);
+<span class="t-f">assembly</span>(<span class="t-s">"box"</span>, [tray, lid, latch, feet], { joints, poses, animations: [show] });</code></pre>
+<p>Methods: <code>pose</code>, <code>translate</code>, <code>rotate</code>, <code>scale</code>, <code>explode</code>, <code>stagger</code>, <code>hide</code>, <code>show</code>. Parts are a
+label, a path, an assembly or a glob (<code>feet/*</code>). A track does nothing before its first key and holds
+its last; times are seconds. Snapshots and STEP files show the model as built.</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/skills/cad/references/mechanisms.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#contents">Contents</a></li><li class="l2"><a href="#joints">Joints</a></li><li class="l2"><a href="#poses">Poses</a></li><li class="l2"><a href="#couplings">Couplings</a></li><li class="l2"><a href="#check-the-travel">Check the travel</a></li><li class="l2"><a href="#animations">Animations</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../../assets/site.js" defer></script>
+</body>
+</html>

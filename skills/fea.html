@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FEA: will it hold, and how far does it move · text-to-cad</title>
+<meta name="description" content="Checks whether a part, or an assembly of bonded parts, is strong and stiff enough under its loads, as a linear static stress study (FEA) with gmsh and CalculiX. Use when the person asks whether a part will hold, break or bend too much, where it is most stressed, how much load it takes, how to make it stronger or lighter, or for FEA, a stress analysis or a strength simulation. Reports peak von Mises stress, safety factor against yield and deflection. Static loads only, not vibration, buckling, heat, fatigue or impact.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="cad.html" aria-current="page">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="cad.html">CAD modeling and inspection</a></li><li class="current"><a href="fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="pcb.html">Circuit boards</a></li><li><a href="render.html">Renders for people</a></li><li><a href="robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="../docs/api.html">Server API (cad server)</a></li><li><a href="../docs/cli.html">cad command line</a></li><li><a href="../docs/index.html">Documentation</a></li><li><a href="../docs/install.html">Installing text-to-cad-rs</a></li><li><a href="../docs/ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="../docs/kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="../docs/kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="../docs/licenses.html">Licences</a></li><li><a href="../docs/quality-report.html">Workspace quality report</a></li><li><a href="../docs/robots.html">Robot descriptions</a></li><li><a href="../docs/security.html">Security and resource limits</a></li><li><a href="../docs/test-port.html">Porting the original test suite</a></li><li><a href="../docs/test-status.html">Test status</a></li></ul></div></aside><main><h1 id="fea-will-it-hold-and-how-far-does-it-move"><a class="anchor" href="#fea-will-it-hold-and-how-far-does-it-move" aria-hidden="true">#</a>FEA: will it hold, and how far does it move</h1><p class="lede">Checks whether a part, or an assembly of bonded parts, is strong and stiff enough under its loads, as a linear static stress study (FEA) with gmsh and CalculiX. Use when the person asks whether a part will hold, break or bend too much, where it is most stressed, how much load it takes, how to make it stronger or lighter, or for FEA, a stress analysis or a strength simulation. Reports peak von Mises stress, safety factor against yield and deflection. Static loads only, not vibration, buckling, heat, fatigue or impact.</p>
+<p>A study holds some faces of a model, loads others, and solves the linear elastic response: stress
+and displacement under forces, pressures, the parts' own weight and steady accelerations, with an
+isotropic material below yield, rigid fixtures, and loads that do not move. Parts of an assembly
+are bonded where they touch. It is a first-pass engineering check, not a certification: say so in
+the report. Vibration, buckling, heat, fatigue, impact and sliding contact are outside it.</p>
+<p>Units are fixed: <strong>mm, N, MPa</strong> (pressure, modulus, stress), <strong>t/mm³</strong> for density (steel 7.85e-9)
+and <strong>g</strong> (9.81 m/s²) for gravity and acceleration. Restate every load in them first.</p>
+<p>The mesher (<code>gmsh</code>) and the solver (<code>ccx</code>, CalculiX) must be installed (<code>apt install gmsh
+calculix-ccx</code>); <code>CAD_GMSH</code> / <code>CAD_CCX</code> name other binaries.</p>
+<h2 id="workflow"><a class="anchor" href="#workflow" aria-hidden="true">#</a>Workflow</h2>
+<ol><li><strong>Build the model</strong> (<code>cad run src/bracket.ts</code>; note its id) with a material on each part<p>(<code>.label(&quot;bracket&quot;, { material: &quot;aluminum&quot; })</code>: the SDK's presets, <code>aluminum</code>, <code>steel</code>,
+<code>stainless</code>, <code>brass</code>, <code>titanium</code>, <code>petg</code>, <code>abs</code>, <code>nylon</code>, ..., are names the study's table
+knows; <code>aluminum</code> reads as 6061), or give a grade for every part with <code>--material</code> or in the
+study.</p></li><li><strong>List the faces</strong> and pick the ones to hold and load:<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model fea <span class="t-s">"$ID"</span>            <span class="t-c"># no study: prints every face with its ref, area, centre and a hint</span></code></pre>
+<p>Hints read like <code>plane, normal -Z, largest</code> or <code>cylinder, r 3</code>. Match the person's words (&quot;the
+mounting face&quot;, &quot;the hole&quot;) by hint and centre. A face picked in the viewer arrives as a ref
+already (<code>&lt;id&gt;#bracket/face 17</code>). Face numbers move when the model changes: list again.</p></li><li><strong>Solve</strong> with flags for a simple study, or a study file for anything more:<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model fea <span class="t-s">"$ID"</span> --fix <span class="t-s">'bracket/face 4'</span> --force <span class="t-s">'bracket/face 9:0,0,-500'</span> --material <span class="t-s">'aluminium 6061'</span> --json
+<span class="t-f">cad</span> model fea <span class="t-s">"$ID"</span> --study study.json --snapshot stress.png --json</code></pre>
+<p>The flags add to a study: <code>--fix REF</code> and <code>--roller REF</code> (repeat for several), <code>--force
+'REF:fx,fy,fz'</code> (N), <code>--pressure 'REF:MPa'</code>, <code>--gravity [gx,gy,gz]</code> (bare: <code>0,0,-1</code> g),
+<code>--material NAME</code>, <code>--margin N</code> (default 2), <code>--size MM</code>, <code>--no-refine</code>, <code>--snapshot OUT.png</code>.</p>
+<pre class="code" data-lang="json"><button class="copy" type="button" aria-label="Copy">Copy</button><code>{
+  <span class="t-s">"fixtures"</span>: [{<span class="t-s">"faces"</span>: [<span class="t-s">"bracket/face 4"</span>], <span class="t-s">"type"</span>: <span class="t-s">"fixed"</span>}],
+  <span class="t-s">"loads"</span>: [
+    {<span class="t-s">"faces"</span>: [<span class="t-s">"bracket/face 9"</span>], <span class="t-s">"type"</span>: <span class="t-s">"force"</span>, <span class="t-s">"vector_N"</span>: [<span class="t-n">0</span>, <span class="t-n">0</span>, -<span class="t-n">500</span>]},
+    {<span class="t-s">"faces"</span>: [<span class="t-s">"bracket/face 12"</span>], <span class="t-s">"type"</span>: <span class="t-s">"pressure"</span>, <span class="t-s">"pressure_MPa"</span>: <span class="t-n">0.2</span>},
+    {<span class="t-s">"type"</span>: <span class="t-s">"gravity"</span>, <span class="t-s">"vector_g"</span>: [<span class="t-n">0</span>, <span class="t-n">0</span>, -<span class="t-n">1</span>]}
+  ],
+  <span class="t-s">"material"</span>: <span class="t-s">"aluminium 6061"</span>,
+  <span class="t-s">"margin"</span>: <span class="t-n">2</span>,
+  <span class="t-s">"checks"</span>: [{<span class="t-s">"kind"</span>: <span class="t-s">"displacement"</span>, <span class="t-s">"limit_mm"</span>: <span class="t-n">0.5</span>, <span class="t-s">"faces"</span>: [<span class="t-s">"bracket/face 9"</span>], <span class="t-s">"label"</span>: <span class="t-s">"Tip sag"</span>}]
+}</code></pre>
+<ul><li><code>fixed</code> holds a face still; <code>roller</code> lets an axis-facing plane slide in its plane (a symmetry<p>cut, a frictionless support).</p></li><li>A <code>force</code> is the total over its faces, spread by area; a <code>pressure</code> pushes into the surface;<p><code>gravity</code>/<code>acceleration</code> act on the whole volume (<code>acceleration</code> loads the opposite way) and
+need a density.</p></li><li><code>material</code>: a table name (<code>steel</code>, <code>s355</code>, <code>stainless 304</code>, <code>aluminium 6061</code>, <code>7075</code>, <code>brass</code>,<p><code>copper</code>, <code>titanium</code>, <code>PLA</code>, <code>PETG</code>, <code>ABS</code>, <code>nylon</code>, <code>POM</code>, <code>polycarbonate</code>, …) or
+<code>{&quot;E_MPa&quot;, &quot;nu&quot;, &quot;yield_MPa&quot;, &quot;density_t_per_mm3&quot;}</code>; <code>parts</code> gives one part its own. Left out,
+each part's model material is looked up (yields are the low end of each grade's range). Never
+pick a material to make a study run: ask.</p></li><li><code>mesh.size_mm</code> defaults to a fortieth of the bounding diagonal; gmsh refines at curved<p>features by itself. When the safety factor is under 3 the run solves again at half the size
+and reports both (<code>refined</code>); <code>mesh.refine: false</code> stops that.</p></li></ul></li><li><strong>Read the result</strong> (<code>--json</code> prints it; exit status 1 when a finding is an error):<p><code>summary</code>, then <code>measurements</code>: <code>max_von_mises_mpa</code> and the face nearest it, <code>safety_factor</code>
+against <code>yield_mpa</code> (the weakest part's), <code>max_displacement_mm</code> and where, <code>applied_force_n</code>
+against <code>reaction_force_n</code> (they must balance), the mesh, and each part's numbers. Look at the
+snapshot (<code>--snapshot stress.png</code>, blue low → red at the peak) or the viewer's stress overlay.</p></li><li><strong>Report with units</strong>: the peak von Mises and the feature it is near, the safety factor and the<p>yield it is against, the largest displacement and where, the load against the reaction, the
+mesh, whether a finer solve ran; then the findings and what the model assumes.</p></li></ol>
+<h2 id="judge-the-answer"><a class="anchor" href="#judge-the-answer" aria-hidden="true">#</a>Judge the answer</h2>
+<p>Estimate by hand first: beam bending for a cantilever (tip deflection PL³/3EI, root stress Mc/I),
+about three times the nominal stress beside a hole in tension, F/A in a bar, p·r/t in a thin ring.
+Within roughly 20 % the model does what you asked; off by a factor, check the load's direction and
+units, the faces, then the material. The suite checks a 100 × 10 × 10 steel cantilever against
+PL³/3EI + shear (0.191 vs 0.192 mm) and Mc/I (60 MPa at the root, 30 at mid-span).</p>
+<h2 id="findings"><a class="anchor" href="#findings" aria-hidden="true">#</a>Findings</h2>
+<div class="table"><table><thead><tr><th>Finding</th><th>Severity</th><th>Means</th><th>Do</th></tr></thead><tbody><tr><td><code>yields</code></td><td>error</td><td>The nodal peak is above yield</td><td>Strengthen where the peak is, change the material, or confirm the load</td></tr><tr><td><code>displacement_over_limit</code></td><td>error</td><td>A displacement check is past its limit</td><td>Stiffen the part or confirm the limit</td></tr><tr><td><code>low_margin</code></td><td>warning</td><td>It holds, but under <code>margin</code></td><td>As for <code>yields</code>, or report the margin it has; never lower <code>margin</code> to clear it</td></tr><tr><td><code>peak_at_fixture</code></td><td>warning</td><td>The peak sits on a held face's edge</td><td>A rigid fixture concentrates stress: read the stress a little away from it</td></tr><tr><td><code>peak_concentration</code></td><td>warning</td><td>The integration-point peak is well above the nodal one</td><td>A sharp corner or point load the mesh has not resolved: fillet it or spread the load</td></tr><tr><td><code>mesh_not_converged</code></td><td>warning</td><td>The finer solve moved the peak by more than 10 %</td><td>A peak that keeps rising is a singularity; otherwise set a smaller <code>mesh.size_mm</code></td></tr><tr><td><code>large_displacement</code></td><td>warning</td><td>It moves more than 1 % of its size</td><td>The small-displacement model is stretched</td></tr><tr><td><code>reaction_mismatch</code></td><td>warning</td><td>The reactions do not balance the load</td><td>Something leaks: check the faces and the fixtures</td></tr></tbody></table></div>
+<p>A refused study (no fixture, a load on a held face, a face ref that is not a face, a part with no
+material, a part free to move) is an error naming the field, before or instead of solving.</p>
+<h2 id="assemblies"><a class="anchor" href="#assemblies" aria-hidden="true">#</a>Assemblies</h2>
+<p>Parts that touch are fragmented into one conformal mesh, so they are <strong>bonded</strong> (glued) where
+they touch; each keeps its own material and is judged against its own yield (<code>parts</code>), and
+<code>weakest_part</code> names the one the safety factor is for. Every part must reach a fixture through
+bonded neighbours. Sliding, bolted or pressed joints are not modelled.</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/skills/fea/SKILL.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#workflow">Workflow</a></li><li class="l2"><a href="#judge-the-answer">Judge the answer</a></li><li class="l2"><a href="#findings">Findings</a></li><li class="l2"><a href="#assemblies">Assemblies</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

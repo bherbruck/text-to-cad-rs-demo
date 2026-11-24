@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kernel parity: OCCT, solidcore and cadrs · text-to-cad</title>
+
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="index.html" aria-current="page">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../skills/cad.html">CAD modeling and inspection</a></li><li><a href="../skills/fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../skills/pcb.html">Circuit boards</a></li><li><a href="../skills/render.html">Renders for people</a></li><li><a href="../skills/robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="api.html">Server API (cad server)</a></li><li><a href="cli.html">cad command line</a></li><li><a href="index.html">Documentation</a></li><li><a href="install.html">Installing text-to-cad-rs</a></li><li><a href="ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li class="current"><a href="kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="licenses.html">Licences</a></li><li><a href="quality-report.html">Workspace quality report</a></li><li><a href="robots.html">Robot descriptions</a></li><li><a href="security.html">Security and resource limits</a></li><li><a href="test-port.html">Porting the original test suite</a></li><li><a href="test-status.html">Test status</a></li></ul></div></aside><main><h1 id="kernel-parity-occt-solidcore-and-cadrs"><a class="anchor" href="#kernel-parity-occt-solidcore-and-cadrs" aria-hidden="true">#</a>Kernel parity: OCCT, solidcore and cadrs</h1>
+<p>text-to-cad runs on any of three geometry kernels behind the <code>cad_kernel::Kernel</code> trait:</p>
+<ul><li><strong>occt</strong>: the default, Open CASCADE through occt-rs;</li><li><strong>solidcore</strong>: tangency-labs solidcore at rev <code>6f5b831</code> (main of 2026-11-24; it was <code>4c938d2</code><p>until then: see &quot;solidcore rev bump&quot; below). Build with
+<code>cargo build -p cad --features solidcore</code>, then start the server with
+<code>cad server start --kernel solidcore</code>;</p></li><li><strong>cadrs</strong>: rvdende/cadrs's pure-Rust kernel (<code>cadrs_kernel</code>) at <code>eb5899ef</code>, as a git<p>dependency. Build with <code>cargo build -p cad --features cadrs</code>, then start the server with
+<code>cad server start --kernel cadrs</code>. See <code>crates/cad-kernel-cadrs/README.md</code>.</p></li></ul>
+<p>This page records how closely they agree. It covers the conformance suite, the six examples,
+and the differences that are inherent to the kernels rather than bugs.</p>
+<h2 id="conformance-suite"><a class="anchor" href="#conformance-suite" aria-hidden="true">#</a>Conformance suite</h2>
+<p><code>cargo test -p cad-kernel-conformance --features solidcore,cadrs -- --nocapture</code>. Each check
+takes <code>&amp;dyn Kernel</code> and compares against a closed-form answer, not against another kernel (see
+<code>crates/cad-kernel-conformance/README.md</code>).</p>
+<div class="table"><table><thead><tr><th>check</th><th>occt</th><th>solidcore</th><th>cadrs</th></tr></thead><tbody><tr><td>box_volume_and_bounds</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>primitive_volumes</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>box_cut_cylinder</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>fuse_and_common</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>box_topology</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>normals_point_out</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>fillet_vertical_edges</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>chamfer_one_edge</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>transforms</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>profile_arc_and_hole_extrude</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>tapered_extrude</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>revolve_profile</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>shell_open_top</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>offset_grows</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>split_by_plane</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>section_by_plane</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>edge_adjacency</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>tessellation_aligns</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>step_round_trip</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>native_round_trip</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>compound_and_solids</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>loft_sections</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>sweep_profiles</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>helix_wire</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>helix_sweep_trimmed</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>distance_apart</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>mesh_import</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>inputs_unchanged</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>errors_name_the_kernel</td><td>pass</td><td>pass</td><td>pass</td></tr><tr><td>kinds</td><td>pass</td><td>pass</td><td>pass</td></tr></tbody></table></div>
+<p>All three kernels pass every check. <code>tests/parity.rs</code> keeps a <code>KNOWN</code> list for a kernel's own
+limits (now empty): a listed check still fails the table's row but not the suite, and the suite
+says when one starts to pass.</p>
+<h2 id="examples"><a class="anchor" href="#examples" aria-hidden="true">#</a>Examples</h2>
+<p>Each example was run with <code>cad run examples/&lt;name&gt;.ts</code> on an OCCT server, a solidcore server and
+a cadrs server, all from one <code>cad --features solidcore,cadrs</code> binary. Each part was then
+compared with <code>cad model inspect --json</code>. Δ rel is measured against OCCT.</p>
+<div class="table"><table><thead><tr><th>model / part</th><th>volume occt (mm³)</th><th>solidcore (Δ rel)</th><th>cadrs (Δ rel)</th><th>bounds equal: sc / cadrs</th><th>faces occt / sc / cadrs</th><th>edges occt / sc / cadrs</th></tr></thead><tbody><tr><td>bracket</td><td>11705.10</td><td>11705.10 (7.5e-11)</td><td>11705.10 (1.2e-12)</td><td>yes / yes</td><td>15 / 15 / 15</td><td>39 / 39 / 39</td></tr><tr><td>enclosure_base</td><td>31933.41</td><td>31933.41 (1.3e-10)</td><td>31933.41 (1.2e-11)</td><td>yes / yes</td><td>35 / 35 / 35</td><td>72 / 72 / 72</td></tr><tr><td>enclosure_lid</td><td>24136.93</td><td>24136.93 (3.0e-12)</td><td>24136.93 (1.1e-13)</td><td>yes / yes</td><td>48 / 48 / 48</td><td>120 / 120 / 120</td></tr><tr><td>enclosure (base + lid)</td><td>56070.34</td><td>56070.34</td><td>56070.34</td><td>yes / yes</td><td>83 / 83 / 83</td><td>192 / 192 / 192</td></tr><tr><td>gear</td><td>12347.12</td><td>12347.12 (5.5e-11)</td><td>12347.12 (5.3e-9)</td><td>yes / yes</td><td>109 / 112 / 109</td><td>321 / 328 / 321</td></tr><tr><td>knob</td><td>10607.76</td><td>10607.89 (1.3e-5)</td><td>10607.89 (1.3e-5)</td><td>yes / yes</td><td>58 / 59 / 58</td><td>165 / 168 / 165</td></tr><tr><td>plate_2d (face)</td><td>–</td><td>–</td><td>–</td><td>yes / yes</td><td>1 / 1 / 1</td><td>23 / 23 / 23</td></tr><tr><td>plate</td><td>24751.49</td><td>24751.49 (3.9e-11)</td><td>24751.49 (1.5e-16)</td><td>yes / yes</td><td>25 / 25 / 25</td><td>69 / 69 / 69</td></tr><tr><td>spring</td><td>712.05</td><td>712.05 (7.9e-7)</td><td>712.05 (8.0e-7)</td><td>yes / yes</td><td>12 / 3 / 3</td><td>21 / 3 / 3</td></tr><tr><td>duct (spring.ts)</td><td>9238.09</td><td><strong>fails</strong>: shell refused</td><td><strong>fails</strong>: shell refused</td><td>–</td><td>20 / – / –</td><td>54 / – / –</td></tr></tbody></table></div>
+<p>On the knob, solidcore and cadrs agree with each other to 1e-9 and OCCT is the one 0.13 mm³
+away.</p>
+<p>Build times on the cadrs server, debug binary: bracket 0.01 s, gear 0.06 s, knob 0.11 s,
+spring 0.14 s. That is faster than OCCT (0.12, 0.33, 0.46 and 8 s) and much faster than
+solidcore (0.6, 3.6, 4.3 and 25 s).</p>
+<p>Re-checked at solidcore <code>6f5b831</code> through the benchmark's <code>kernel-bench one</code> (native release; all
+29 example parts of the corpus): every volume is as before (solidcore and cadrs within 1e-5 of
+OCCT; gear pair 2.9e-6 and 9.1e-5), and the duct still fails on both. solidcore build times went
+down: bracket 0.56 → 0.16 s, gear 2.89 → 1.04 s, knob 3.68 → 1.54 s, spring 23.6 → 11.5 s,
+bearing 8.1 → 1.4 s, sprocket 6.1 → 1.1 s, pipe tee 8.8 → 1.7 s (OCCT: 0.02, 0.29, 0.34, 0.50,
+0.23, 0.23, 0.23 s; cadrs: 0.01, 0.05, 0.09, 0.28, 0.05, 0.05, 0.05 s).</p>
+<h3 id="snapshots"><a class="anchor" href="#snapshots" aria-hidden="true">#</a>Snapshots</h3>
+<p>I took a snapshot of every model on all three servers (<code>cad model snapshot</code>, iso, shaded) and
+compared them by eye. Bracket, enclosure, gear, knob, plate, plate_2d and spring look the same
+on all three kernels.</p>
+<h3 id="exports-on-solidcore"><a class="anchor" href="#exports-on-solidcore" aria-hidden="true">#</a>Exports on solidcore</h3>
+<div class="table"><table><thead><tr><th>format</th><th>result</th></tr></thead><tbody><tr><td>STEP</td><td>All six examples were exported, then read back on the OCCT server (<code>cad viewer FILE</code>). Every part came back valid. Volumes matched within 3e-5 (gear 12347.12, plate 24751.49, bracket 11705.10, enclosure 56070.34, knob 10607.56), except spring: 707.2 read by OCCT against 712.05. Face counts are solidcore's (gear 112, enclosure 83).</td></tr><tr><td>STL</td><td>All six were written. The mesh volume differs from the exact volume by the chord error: bracket +0.12%, gear +0.18%, plate +0.07%, enclosure −0.25%, knob −0.23%, spring −2.8%. The OCCT exports at the same settings are −0.09% to +0.10%, with spring at −0.4%.</td></tr><tr><td>DXF</td><td>plate_2d: 12 LINE, 6 ARC, 5 CIRCLE. plate (a solid, exported as its section at z = 0): the same 23 entities. Both are identical to OCCT's DXF.</td></tr></tbody></table></div>
+<h3 id="exports-on-cadrs"><a class="anchor" href="#exports-on-cadrs" aria-hidden="true">#</a>Exports on cadrs</h3>
+<div class="table"><table><thead><tr><th>format</th><th>result</th></tr></thead><tbody><tr><td>STEP</td><td>All six examples were exported. Read back on OCCT, every part is valid, with cadrs's face counts and volumes equal to 1e-7, except spring at 713.77 (OCCT's measure of cadrs's swept wall). Read back on cadrs: spring 712.05, and every other volume exact. The enclosure comes back as its two named parts.</td></tr><tr><td>STL</td><td>All six were written. Mesh volume error: bracket +0.09%, enclosure −0.08%, gear +0.03%, knob −0.21%, plate +0.09%, spring −0.6%.</td></tr><tr><td>DXF</td><td>plate_2d and plate (section at z = 0): 12 LINE, 6 ARC, 5 CIRCLE, the same as OCCT.</td></tr></tbody></table></div>
+<h2 id="known-differences"><a class="anchor" href="#known-differences" aria-hidden="true">#</a>Known differences</h2>
+<p>Fixed in the adapter while doing this comparison:</p>
+<ul><li><strong>Spring (sweep along a helix).</strong> solidcore has no helix curve, so <code>helix()</code> is a C1 cubic<p>spline through 32 points per turn. Sweeping along that spline was slow (16 to 30 s) and wrong:
+either &quot;not a closed solid&quot;, or a volume of 99.8 where 712 was expected. The adapter now
+remembers that the wire is a helix. A planar face swept along it becomes solidcore's exact
+screw sweep, because a sweep along a helix is a screw motion. The volume now matches OCCT to
+8e-7.</p></li><li><strong>Loft twist.</strong> solidcore's skin pairs the curves of each section by parameter. A rounded<p>square (9 curves) lofted to a circle (1 curve) twisted, giving a volume of 43247 against
+OCCT's 53241. The adapter now lines the sections up before skinning:</p>
+<ul><li>each section runs the same way as the first;</li><li>each starts nearest where the one before starts;</li><li>a full circle is cut into arcs at the angles of the other section's curves.</li></ul>
+<p>The duct's loft is now 53205 against OCCT's 53241, a 0.07% difference.</p>
+<p>Straight-edged sections with different numbers of corners (a hexagon to a rectangle) still
+twisted: the kernel benchmark's <code>feat-000/014/056-loft</code> came out 6–25% below either untwisted
+pairing. The adapter now gives such sections the same corners first: each outline is split
+where any section has a corner, by angle round its own centre (<code>curves::matched_corners</code>;
+sections that are not star-shaped about their centre, or have a curved side, are left as they
+are). All three cases now match OCCT's volume to 1e-6.</p></li><li><strong>Empty booleans.</strong> A common of bodies that do not meet, or a cut that removes everything,<p>was an error on solidcore and cadrs (&quot;the result is empty&quot;), where OCCT returns an empty
+compound and the model goes on (16 cases of the kernel benchmark, plus 2 where OCCT failed
+elsewhere). Both adapters now return an empty body (an empty compound: no solids, volume 0)
+that later booleans take: a fuse or cut with it leaves the other side, a common with it is
+empty. cadrs has no empty compound, so its adapter marks one that holds no cadrs body. The
+conformance check <code>empty_results</code> covers it. All 18 cases now build on both kernels, within
+the Monte Carlo reference's error.</p></li><li><strong>Section along a face.</strong> A plane lying exactly on a face (the DXF of a solid at z = 0) made<p>solidcore's split leave one side empty, so the DXF failed. The adapter now takes the outline
+of the body's own faces on that plane.</p></li><li><strong>Rounds in STEP.</strong> solidcore writes those rounds as <code>CONICAL_SURFACE</code> with a zero<p>half-angle, which STEP does not allow. solidcore's own reader then refused the file (&quot;cone with
+a negative radius or a semi angle outside (0, 90°)&quot;); the wasm smoke test's <code>openFile .step</code>
+showed it. <code>write_step</code> now writes those faces as the <code>CYLINDRICAL_SURFACE</code> they are, which
+is exact because the parameterisation is the same. The conformance step_round_trip check now
+includes a filleted box.</p></li><li><strong>Round faces.</strong> solidcore records a round along a straight edge as a cone with a zero<p>half-angle. The adapter now reports these as Cylinder with their radius, so radius selectors
+work.</p></li></ul>
+<p>Inherent to the kernels (recorded, not fixed):</p>
+<ul><li><strong>cadrs: duct shell.</strong> cadrs also refuses the duct's <code>shell(&quot;&gt;Z or &lt;Z&quot;, -1.6)</code> (&quot;the boolean<p>left an open shell&quot;), with the rounded and the sharp join alike. With sharp corners
+(radius 0) both ends open (9437.8 mm³, against solidcore's 9433.3). cadrs's own loft of the
+duct is 53254.7, against OCCT's 53240.7 and solidcore's 53205.</p></li><li><strong>cadrs: modelled threads.</strong> cadrs's boolean used to miss every intersection with a sweep<p>along <code>helix()</code> (&quot;the boolean left an open shell&quot;, or the operands handed back untouched: 2041.5
+mm³ for <code>examples/dogfood/10-printed-bolt.ts</code> against 1990.2). The cause was the path, not the
+thread: the adapter swept along the helix wire's interpolating spline. It now sweeps along
+rational quadratic Béziers, 16 a turn, as cadrs's own Thread feature does
+(<code>cadrs_core::rebuild::kernel_ops::thread</code>), and cadrs cuts and trims those exactly. Modelled
+threads now build on cadrs, both the ridge construction (fuse and trim, the SDK's) and the groove
+construction (one cut, cadrs's own). The volumes agree with OCCT's and solidcore's to 0.01 mm³.
+The result check stays on every cadrs boolean (a common past its operands' common box, a cut
+past what it cut, a fuse that leaves meeting operands apart), so a miss is an error, never a
+wrong part. Times from <code>crates/cad-kernel-conformance/tests/thread.rs</code> (release, this box,
+16 cores; wasm cold in node):</p>
+<div class="table"><table><thead><tr><th>build</th><th>occt</th><th>solidcore</th><th>cadrs</th><th>cadrs, 1 thread</th><th>cadrs wasm</th></tr></thead><tbody><tr><td>shank, ridge (fuse + trim)</td><td>2.09 s</td><td>35.4 s</td><td>0.71 s</td><td>2.28 s</td><td>6.3 s</td></tr><tr><td>shank, groove (one cut)</td><td>1.74 s</td><td>26.4 s</td><td>0.57 s</td><td>1.88 s</td><td>5.2 s</td></tr><tr><td><code>hexBolt(&quot;M8&quot;, 30, { thread: &quot;modelled&quot; })</code>, ridge (before the SDK switched)</td><td>2.34 s</td><td>42.3 s</td><td>0.83 s</td><td>2.46 s</td><td>6.2 s; 3.1 s at <code>-O3</code></td></tr></tbody></table></div></li></ul>
+<p>| the same bolt, groove (the SDK now) | 1.96 s | 33.1 s | 0.46 s | | |</p>
+<p>The SDK now cuts the groove: the bolt is 2006.31 mm³ on all three kernels (the full-depth
+groove; the ridge gave 1990.21). So cadrs modelled threads are correct, and natively faster than OCCT's. In the browser they
+are slower: 3.1 s for the bolt, against OCCT's 2.3 s native. cadrs's own web app is slow on
+threads for the same reasons: it runs the same route (this sweep and a cut), on one thread, in
+wasm. The 1-thread column runs with <code>RAYON_NUM_THREADS=1</code>. At solidcore <code>6f5b831</code> the solidcore
+column drops: ridge shank 35.4 → 14.6 s, groove shank 26.4 → 12.5 s, the groove bolt 33.1 →
+11.9 s. The browser is slow for two reasons:
+wasm runs on one thread, against cadrs's rayon loops natively (3×), and a build at opt-level
+<code>s</code> is about 2.5× slower than native on one thread. <code>build.sh</code> now builds the cadrs flavour at
+opt-level 3: twice as fast (6.2 to 3.1 s) for 0.2 MB more gzip. Of the time on one thread, the cut is about half
+and the volume (mass properties over the swept faces) about a third.</p>
+<ul><li><strong>Smooth edges.</strong> <code>smooth_edges()</code> (engine's new trait method) is implemented on solidcore and<p>cadrs from their tessellations: an edge is smooth when its two faces' mesh normals (the
+surfaces' own) at the edge agree within 0.5°. The engine then leaves such edges out of broad
+fillet and chamfer selections, so tscad's wall-hook and cable-clip, which solidcore refused
+(&quot;edge … has no blend (Smooth)&quot;), now build on all three kernels at the same volume
+(9958.1 and 1015.8 mm³). The conformance check <code>smooth_edges</code> (an extruded rounded rectangle:
+8 smooth edges, 16 sharp) passes on all three.</p></li><li><strong>cadrs: three-section lofts.</strong> cadrs skins a loft through more than two sections its own way:<p>it passes exactly through every section where OCCT and solidcore overshoot a little
+(0.01 mm), and on tscad's sketch-vase its outer loft is 0.3% above OCCT's (666385 against</p>
+<ol start="664361"><li>and its inner 0.7% below (585430 against 589738). OCCT and solidcore agree to 2e-4.<p>Two-section lofts agree on all three to 1e-5. The vase's cut of one loft from the other is
+then wrong on cadrs (80955 mm³, reaching 2.4 mm past the outer loft); the adapter's result
+check now turns that into an error (&quot;the cut reaches past what it cut&quot;).</p></li></ol></li><li><strong>solidcore rev bump (<code>4c938d2</code> to <code>6f5b831</code>, 867 commits).</strong> The adapter built against the<p>new rev unchanged. Against the kernel benchmark's corpus (271 cases, one process each, run one
+at a time on this box, native release):</p>
+<ul><li>built 232 → 253 cases: the 18 empty booleans above (adapter), <code>csg-109-d6-snap</code> (solidcore<p>no longer leaves it open), and the two scaling cases that timed out at 60 s
+(<code>scale-plate-holes-500</code> now 17.8 s, <code>scale-union-boxes-200</code> 7.0 s);</p></li><li>nothing that built before fails now, and no volume moved past the reference's error;</li><li>2.6× faster (geometric mean over the 232 cases both built), so solidcore now takes 6.3× OCCT's<p>time instead of 16.5×. Booleans and mass properties gained most: <code>tests/perf.rs</code> bearing_608
+8.1 → 1.41 s, gt2_pulley 6.2 → 1.16 s, gear_pair 4.2 → 1.72 s. The modelled M8x30 bolt is
+33.1 → 11.9 s, and the thread's cut 13.2 → 1.0 s; its screw sweep (8.7 s) is now most of it.</p></li><li>one case got worse: <code>feat-043-shell-csg</code> was refused at once (&quot;not supported yet: a vertex<p>moved past the other end of an edge&quot;) and now runs past 60 s. It failed on OCCT's side of the
+comparison too (cadrs refuses it).</p></li><li>still failing: the duct shell (now &quot;the body is not a closed solid facing out&quot;), 5 shells of<p>cut CSG (<code>feat-002/009/021/050/075</code>), 3 fillets or chamfers that cadrs or OCCT build
+(<code>feat-005/011/041</code>), <code>csg-095-d5-snap</code> (status 1001) and <code>part-nema23</code> (cut, &quot;not a closed
+solid&quot;). Error texts changed with the rev (solidcore's errors now name their causes).</p></li></ul></li><li><strong>solidcore: speed.</strong> The parts library's gear pair took about 30 s on solidcore (release; about<p>60 s through a debug server). Two fixes brought it to 4.3 s, 7×:</p>
+<ul><li><strong>Spline segments</strong> are now the C2 cubic interpolation of their points (The NURBS Book's<p>global interpolation). The C1 Catmull-Rom chains they used to be had triple knots that
+solidcore splits faces and edges at.</p></li><li><strong>Line and circle edges</strong> are measured exactly from their ends, not integrated.</li></ul>
+<p>The engine's <code>edges()</code> call, which had taken 17 s of the 30, now takes 0.9 s. The gear's volume
+also now matches OCCT to 0.1 mm³.</p></li><li><strong>Drawings: hidden lines.</strong> cadrs uses its own hidden-line removal. solidcore draws its edges and<p>the outlines of its curved faces from its tessellation, and splits them into seen and hidden runs
+with a 2048-pixel depth buffer. OCCT uses its own HLR.</p></li><li><strong>cadrs: section is a sheet.</strong> <code>section()</code> on cadrs returns the cut faces lying on the plane<p>as a sheet (kind Face/Shell), not a wire. Its edges are the section curves, which is all the
+DXF export and the conformance check read.</p></li><li><strong>cadrs: planar faces.</strong> These are made by extruding the profile and keeping its cap, through<p>cadrs's <code>testkit</code> internals (<code>native::kernel::subset</code>).</p></li><li><strong>Duct shell (spring.ts).</strong> solidcore refuses <code>shell(&quot;&gt;Z or &lt;Z&quot;, -1.6)</code> on the<p>rounded-square-to-circle loft. Opening the rounded-square end fails (&quot;the result is not a
+closed solid&quot;, or &quot;a gap in its offset's loops cannot be bridged&quot;). With sharp corners
+(radius 0) both ends open fine, and opening only the circular top works (11368.9 mm³).
+The other way round, OCCT fails <code>shell(&quot;&gt;Z&quot;)</code> alone (&quot;Geom_TrimmedCurve::parameters out of
+range&quot;) but builds the two-ended shell. The two kernels' offsets fail on different inputs.</p></li><li><strong>Face splitting.</strong> The kernels split periodic and swept faces differently:<ul><li>gear: 112 faces against 109, because solidcore splits the bore and its chamfers into more faces;</li><li>knob: 59 against 58;</li><li>spring: OCCT splits the swept tube into 12 faces, solidcore's screw sweep gives 3 (wall and<p>two caps).</p></li></ul>
+<p>Volumes and bounds still agree. Selectors that count faces can see different numbers.</p></li><li><strong>Helix wire.</strong> On solidcore and cadrs, <code>helix()</code> is a spline approximation, within about 1e-5 of the radius. Its<p>length is within 1e-3 of the true helix. Only a sweep along it is exact: solidcore's screw sweep, and on cadrs the
+sweep runs along rational Béziers (exact arcs in plan, within about 1e-3 of the pitch) with
+<code>SweepControl::Helix</code>. All three kernels start the helix on world X made square to the
+axis (world Y for an axis near X), and the conformance suite now checks this.</p></li><li><strong>Spline segments.</strong> On solidcore and cadrs, <code>Segment::Spline</code> is a Catmull-Rom cubic through the points. It passes<p>through every point and is C1, but it is not OCCT's interpolating B-spline, so the curves
+differ between the points.</p></li><li><strong>Knob volume, 1.3e-5 relative.</strong> The knob's revolved torus band is cut by 24 cylinders.<p>OCCT's result differs from solidcore's and cadrs's by 0.13 mm³, while those two agree with
+each other to 1e-9. The snapshots match.</p></li><li><strong>Spring STEP read by OCCT: 707.2 against 712.05.</strong> solidcore writes the screw-swept wall as<p>its NURBS form. OCCT's volume of that NURBS differs by 0.7%. solidcore reads its own file back
+at 712.05.</p></li><li><strong>Mesh density.</strong> solidcore-tess honours the facet angle (28.5° by default for export), so<p>thin tubes get few facets: the spring's 1.2 mm wire has about 13 sides, a −2.8% volume error.
+OCCT's mesher refines the same spring to about 680k triangles against solidcore's 16k. Pass
+<code>--angle</code> to <code>cad model export</code> for finer solidcore meshes.</p></li><li><strong>Speed.</strong> Every solidcore call runs on one process-wide kernel behind a lock. Builds are<p>about 5 to 10 times slower than OCCT in this debug build (gear 3.6 s against 0.33 s, knob
+4.3 s against 0.46 s, spring 25 s against 8 s).</p></li><li><strong>Index order.</strong> Face and edge indices follow solidcore's record order, not OCCT's TopExp<p>order. Selectors work by geometry, so this matters only to raw indices.</p></li><li><strong>Wires and compounds.</strong> These are held by the adapter, not by solidcore. <code>to_native</code> of a<p>wire is Unsupported.</p></li><li><strong>STEP import.</strong> Assembly placements are applied. Colours are not read.</li></ul>
+<h2 id="running-each-kernel"><a class="anchor" href="#running-each-kernel" aria-hidden="true">#</a>Running each kernel</h2>
+<p>One binary can carry all three kernels, each behind a cargo feature. Each server keeps its own
+documents under its <code>CAD_HOME</code>:</p>
+<pre class="code" data-lang="sh"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cargo</span> build -p cad --features solidcore,cadrs
+<span class="t-f">cp</span> .occt/lib/libocct_capi.so target/debug/          <span class="t-c"># OCCT's module, next to the binary</span>
+
+<span class="t-f">CAD_HOME</span>=~/.cad-occt      cad server start --port <span class="t-n">7979</span> --kernel occt
+<span class="t-f">CAD_HOME</span>=~/.cad-solidcore cad server start --port <span class="t-n">7980</span> --kernel solidcore
+<span class="t-f">CAD_HOME</span>=~/.cad-cadrs     cad server start --port <span class="t-n">7982</span> --kernel cadrs
+
+<span class="t-f">CAD_HOME</span>=~/.cad-cadrs CAD_PORT=<span class="t-n">7982</span> cad run examples/gear.ts   <span class="t-c"># runs on that server</span>
+<span class="t-f">CAD_HOME</span>=~/.cad-cadrs CAD_PORT=<span class="t-n">7982</span> cad server stop</code></pre>
+<p><code>cad --version</code> names the kernels a build has. A kernel that was built without its feature is
+refused with that list. The comparisons on this page used ports 7979 (OCCT), 7980 (solidcore)
+and 7982 (cadrs), with a CAD_HOME for each in a scratch directory. Those servers have since
+been stopped.</p>
+<h2 id="browser-wasm"><a class="anchor" href="#browser-wasm" aria-hidden="true">#</a>Browser (wasm)</h2>
+<p><code>crates/cad-wasm</code> builds one module per kernel (<code>FLAVOURS=occt|solidcore|cadrs
+crates/cad-wasm/build.sh</code>). The files go to <code>apps/viewer/public/wasm/</code>.</p>
+<div class="table"><table><thead><tr><th>flavour</th><th>engine wasm, raw / gzip</th><th>also loads</th><th><code>new CadEngine</code> + cold filleted bracket</th><th>warm rebuild</th></tr></thead><tbody><tr><td>occt (<code>cad_wasm</code>)</td><td>1.3 MB / 0.5 MB</td><td><code>occt_capi.wasm</code> 24.0 MB / 7.2 MB</td><td>114 ms</td><td>0.5 ms</td></tr><tr><td>solidcore (<code>cad_wasm_solidcore</code>)</td><td>26.6 MB / 8.8 MB</td><td>–</td><td>785 ms</td><td>0.4 ms</td></tr><tr><td>cadrs (<code>cad_wasm_cadrs</code>)</td><td>6.2 MB / 2.4 MB</td><td>–</td><td>68 ms</td><td>0.3 ms</td></tr></tbody></table></div>
+<p>Every flavour passes <code>node crates/cad-wasm/smoke.mjs</code>. The bracket's volume equals the analytic
+value (4477.805). Mesh, every export (step, stl, glb, 3mf, obj, brep), reopening its own STEP and
+STL exports, interference and the snapshot all pass. On cadrs the hinge mechanism ranges too.</p>
+<p>On wasm32, cadrs needs one change: <code>uuid</code>'s <code>js</code> source of randomness, which
+<code>cad-kernel-cadrs</code> turns on for wasm32 targets only. Nothing else needed gating, and rayon
+caused no trouble at runtime.</p>
+<p>On solidcore, <code>openFile .step</code> on its own export failed before the STEP fix above (fillet rounds
+written as zero-angle cones). The wasm rebuild after the fix passes.</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/docs/kernel-parity.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#conformance-suite">Conformance suite</a></li><li class="l2"><a href="#examples">Examples</a></li><li class="l3"><a href="#snapshots">Snapshots</a></li><li class="l3"><a href="#exports-on-solidcore">Exports on solidcore</a></li><li class="l3"><a href="#exports-on-cadrs">Exports on cadrs</a></li><li class="l2"><a href="#known-differences">Known differences</a></li><li class="l2"><a href="#running-each-kernel">Running each kernel</a></li><li class="l2"><a href="#browser-wasm">Browser (wasm)</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

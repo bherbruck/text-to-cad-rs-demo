@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snapshots · text-to-cad</title>
+
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../../index.html"><img src="../../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../../docs/index.html">Docs</a><a href="../cad.html" aria-current="page">Skills</a><a href="../../examples/index.html">Examples</a><a href="../../gallery/index.html">Gallery</a><a href="../../cli/index.html">CLI</a><a class="play" href="../../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../../docs/index.html">Docs</a></li><li><a href="../cad.html">Skills</a></li><li><a href="../../examples/index.html">Examples</a></li><li><a href="../../gallery/index.html">Gallery</a></li><li><a href="../../cli/index.html">CLI</a></li><li><a href="../../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../cad.html">CAD modeling and inspection</a></li><li><a href="../fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../pcb.html">Circuit boards</a></li><li><a href="../render.html">Renders for people</a></li><li><a href="../robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>References</h4><ul><li><a href="drawings.html">Engineering drawings</a></li><li><a href="exports.html">Exports</a></li><li><a href="inspection-and-validation.html">Inspecting and checking models</a></li><li><a href="manufacturing-cnc.html">CNC milling</a></li><li><a href="manufacturing-injection-molding.html">Injection molding</a></li><li><a href="manufacturing-printing.html">3D printing</a></li><li><a href="manufacturing-review.html">Manufacturing checks: the result, the review, a redesign</a></li><li><a href="manufacturing-sheet-metal.html">Sheet metal</a></li><li><a href="mechanisms.html">Mechanisms: joints, poses and animations</a></li><li><a href="model-contract.html">Models</a></li><li><a href="parts.html">Standard parts</a></li><li><a href="sdk-modeling.html">@cad/sdk modeling</a></li><li><a href="selectors.html">Selectors</a></li><li class="current"><a href="snapshot-review.html">Snapshots</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="../../docs/api.html">Server API (cad server)</a></li><li><a href="../../docs/cli.html">cad command line</a></li><li><a href="../../docs/index.html">Documentation</a></li><li><a href="../../docs/install.html">Installing text-to-cad-rs</a></li><li><a href="../../docs/ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="../../docs/kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/licenses.html">Licences</a></li><li><a href="../../docs/quality-report.html">Workspace quality report</a></li><li><a href="../../docs/robots.html">Robot descriptions</a></li><li><a href="../../docs/security.html">Security and resource limits</a></li><li><a href="../../docs/test-port.html">Porting the original test suite</a></li><li><a href="../../docs/test-status.html">Test status</a></li></ul></div></aside><main><h1 id="snapshots"><a class="anchor" href="#snapshots" aria-hidden="true">#</a>Snapshots</h1>
+<p>Read this file when choosing pictures to review a model or a file. Which pictures a change calls
+for is <a href="../cad.html#check-each-change">Check each change</a>; this file is what a snapshot can draw.</p>
+<h2 id="contents"><a class="anchor" href="#contents" aria-hidden="true">#</a>Contents</h2>
+<ul><li><a href="#the-command">The command</a></li><li><a href="#camera">Camera</a></li><li><a href="#display">Display</a></li><li><a href="#one-part">One part</a></li><li><a href="#what-to-look-at">What to look at</a></li></ul>
+<h2 id="the-command"><a class="anchor" href="#the-command" aria-hidden="true">#</a>The command</h2>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model snapshot <span class="t-s">"$ID"</span> tmp/review.png
+<span class="t-f">cad</span> model snapshot <span class="t-s">"$ID"</span> tmp/top.png --camera top --display hidden-line
+<span class="t-f">cad</span> model snapshot <span class="t-s">"$ID"</span> tmp/lid.png --part enclosure/lid --size 1600x1200</code></pre>
+<p>It draws the document as the server holds it (nothing is built) with a software renderer into a
+PNG, default 1024×768, isometric and shaded with edges. Open the PNG to look at it. From a script,
+<code>await h.snapshot(&quot;tmp/review.png&quot;, { camera: &quot;front&quot;, display: &quot;hidden-line&quot; })</code> does the same.</p>
+<p>Keep review pictures in an ignored <code>tmp/</code> folder, not beside the deliverables.</p>
+<h2 id="camera"><a class="anchor" href="#camera" aria-hidden="true">#</a>Camera</h2>
+<div class="table"><table><thead><tr><th><code>--camera</code></th><th>Looks from</th></tr></thead><tbody><tr><td><code>iso</code> (default)</td><td>Front-right-top, isometric</td></tr><tr><td><code>front</code> / <code>back</code></td><td>-Y / +Y</td></tr><tr><td><code>left</code> / <code>right</code></td><td>-X / +X</td></tr><tr><td><code>top</code> / <code>bottom</code></td><td>+Z / -Z</td></tr><tr><td><code>x,y,z</code></td><td>Toward the model from that direction (<code>1,-1,-0.5</code> is from the front-right, below)</td></tr></tbody></table></div>
+<p>The presets are the world's axes, Z up, not a part's own front: a plate modelled flat faces <code>top</code>
+and shows edge-on from <code>front</code>.</p>
+<h2 id="display"><a class="anchor" href="#display" aria-hidden="true">#</a>Display</h2>
+<div class="table"><table><thead><tr><th><code>--display</code></th><th>Draws</th><th>Use for</th></tr></thead><tbody><tr><td><code>shaded</code> (default)</td><td>Shaded faces with edge lines</td><td>Overall form, placement, colours</td></tr><tr><td><code>hidden-line</code></td><td>Visible edges only</td><td>Profiles, hole patterns, DXF outlines, counts</td></tr><tr><td><code>wireframe</code></td><td>Every edge, hidden ones too</td><td>Inside features, which edges a selector will hit</td></tr></tbody></table></div>
+<h2 id="one-part"><a class="anchor" href="#one-part" aria-hidden="true">#</a>One part</h2>
+<p><code>--part PATH</code> draws one part alone, by its path (<code>enclosure/lid</code>), at its place in the assembly. Use
+it for a part that the rest hides, and to review a part before the whole.</p>
+<h2 id="what-to-look-at"><a class="anchor" href="#what-to-look-at" aria-hidden="true">#</a>What to look at</h2>
+<ul><li><strong>One picture is rarely enough.</strong> Look from the side that shows the change, and from the<p>opposite side: an isometric hides the back, the bottom and anything inside.</p></li><li><strong>For a hole pattern or outline</strong>, <code>--camera top --display hidden-line</code> and count.</li><li><strong>For an assembly</strong>, each part alone, then the whole from front and back; a shell's inside<p>needs <code>wireframe</code> or a <a href="sdk-modeling.html#features">section</a> model.</p></li><li><strong>A snapshot shows arrangement and appearance, never a number.</strong> A size, gap or wall comes from<p><a href="inspection-and-validation.html">inspection</a>.</p></li><li><strong>A picture for the person</strong> is their open viewer page, which follows every run, or a photoreal<p><code>cad model render</code> (the render skill) for a README, a product shot or a turntable; snapshots are
+your own review.</p></li></ul><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/skills/cad/references/snapshot-review.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#contents">Contents</a></li><li class="l2"><a href="#the-command">The command</a></li><li class="l2"><a href="#camera">Camera</a></li><li class="l2"><a href="#display">Display</a></li><li class="l2"><a href="#one-part">One part</a></li><li class="l2"><a href="#what-to-look-at">What to look at</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../../assets/site.js" defer></script>
+</body>
+</html>

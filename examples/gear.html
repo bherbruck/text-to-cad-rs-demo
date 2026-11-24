@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gear · text-to-cad</title>
+<meta name="description" content="A spur-gear-like wheel: a hub with trapezoid teeth spread by a polar pattern, lightening holes and a keyed bore. (Straight-flank teeth, not a true involute.) Run: cad run examples/gear.ts">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="index.html" aria-current="page">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Examples</h4><ul><li><a href="index.html">All examples</a></li><li><a href="arm.html">arm</a></li><li><a href="blinky_pcb.html">blinky_pcb</a></li><li><a href="bracket.html">bracket</a></li><li><a href="enclosure.html">enclosure</a></li><li><a href="esp32_pcb.html">esp32_pcb</a></li><li><a href="fasteners.html">fasteners</a></li><li class="current"><a href="gear.html">gear</a></li><li><a href="gear_train.html">gear_train</a></li><li><a href="hinge_box.html">hinge_box</a></li><li><a href="knob.html">knob</a></li><li><a href="plate.html">plate</a></li><li><a href="spring.html">spring</a></li></ul></div><div class="group"><h4>Gallery</h4><ul><li><a href="../gallery/index.html">Prompts → models</a></li><li><a href="dogfood-01-nema17-mount.html">01-nema17-mount</a></li><li><a href="dogfood-02-pipe-tee.html">02-pipe-tee</a></li><li><a href="dogfood-03-phone-stand.html">03-phone-stand</a></li><li><a href="dogfood-04-desk-tray.html">04-desk-tray</a></li><li><a href="dogfood-05-sprocket.html">05-sprocket</a></li><li><a href="dogfood-06-living-hinge-box.html">06-living-hinge-box</a></li><li><a href="dogfood-07-sheet-bracket.html">07-sheet-bracket</a></li><li><a href="dogfood-08-gripper.html">08-gripper</a></li><li><a href="dogfood-09-bme280-breakout.html">09-bme280-breakout</a></li><li><a href="dogfood-10-printed-bolt.html">10-printed-bolt</a></li></ul></div></aside><main><h1 id="top">gear</h1><p class="lede">A spur-gear-like wheel: a hub with trapezoid teeth spread by a polar pattern, lightening holes and a keyed bore. (Straight-flank teeth, not a true involute.) Run: cad run examples/gear.ts</p><div class="actions"><a class="button primary" href="../play/index.html#code=Ly8gQSBzcHVyLWdlYXItbGlrZSB3aGVlbDogYSBodWIgd2l0aCB0cmFwZXpvaWQgdGVldGggc3ByZWFkIGJ5IGEgcG9sYXIgcGF0dGVybiwgbGlnaHRlbmluZwovLyBob2xlcyBhbmQgYSBrZXllZCBib3JlLiAoU3RyYWlnaHQtZmxhbmsgdGVldGgsIG5vdCBhIHRydWUgaW52b2x1dGUuKQovLyBSdW46IGNhZCBydW4gZXhhbXBsZXMvZ2Vhci50cwppbXBvcnQgeyBib3gsIGNpcmNsZSwgY3lsaW5kZXIsIG1vZGVsLCBwYXJhbSwgcG9seWdvbiwgc2VsIH0gZnJvbSAiQGNhZC9zZGsiOwoKZXhwb3J0IGNvbnN0IGdlYXIgPSBtb2RlbCgiZ2VhciIsICgpID0-IHsKICBjb25zdCB0ZWV0aCA9IHBhcmFtKCJ0ZWV0aCIsIDI0LCB7IG1pbjogOCwgbWF4OiA4MCwgc3RlcDogMSB9KTsKICBjb25zdCBtID0gcGFyYW0oIm1vZHVsZSIsIDIsIHsgbWluOiAwLjUsIG1heDogNSwgc3RlcDogMC4yNSwgdW5pdDogIm1tIiB9KTsKICBjb25zdCB0ID0gcGFyYW0oInRoaWNrbmVzcyIsIDgsIHsgbWluOiAyLCBtYXg6IDMwLCB1bml0OiAibW0iIH0pOwoKICBjb25zdCBwaXRjaCA9IChtICogdGVldGgpIC8gMjsKICBjb25zdCB0aXAgPSBwaXRjaCArIG0sIHJvb3QgPSBwaXRjaCAtIDEuMjUgKiBtOwogIGNvbnN0IHBpdGNoQW5nbGUgPSAoMiAqIE1hdGguUEkpIC8gdGVldGg7CiAgY29uc3Qgcm9vdEhhbGYgPSAocm9vdCAqIHBpdGNoQW5nbGUpIC8gNCArIDAuNCAqIG0sIHRpcEhhbGYgPSAwLjM1ICogbTsKCiAgY29uc3QgYmxhbmsgPSBjaXJjbGUocm9vdCkuaG9sZShjaXJjbGUoNSkpLmV4dHJ1ZGUodCk7CiAgY29uc3QgdG9vdGggPSBwb2x5Z29uKFtbcm9vdCAtIG0sIC1yb290SGFsZl0sIFt0aXAsIC10aXBIYWxmXSwgW3RpcCwgdGlwSGFsZl0sIFtyb290IC0gbSwgcm9vdEhhbGZdXSkuZXh0cnVkZSh0KTsKICBjb25zdCBob2xlID0gY3lsaW5kZXIoKHJvb3QgLSAxMikgLyA0LCB0ICogMykudHJhbnNsYXRlKChyb290ICsgOCkgLyAyLCAwLCAwKTsKICBjb25zdCBrZXkgPSBib3goNCwgMywgdCAqIDMpLnRyYW5zbGF0ZSg1LCAwLCAwKTsKCiAgcmV0dXJuIGJsYW5rCiAgICAuZnVzZSh0b290aC5wb2xhckNvcGllcyh0ZWV0aCkpCiAgICAuY3V0KGhvbGUucG9sYXJDb3BpZXMoNSksIGtleSkKICAgIC5jaGFtZmVyKHNlbC5yYWRpdXMoNSkuYW5kKHNlbC50eXBlKCJjaXJjbGUiKSwgIj5aIG9yIDxaIiksIDAuNikgICAgLy8gYm90aCBlbmRzIG9mIHRoZSBib3JlCiAgICAubGFiZWwoImdlYXIiLCB7IGNvbG9yOiAiI2IwOGQ1NyIsIG1hdGVyaWFsOiAiYnJhc3MiIH0pOwp9KTsKCmlmIChpbXBvcnQubWV0YS5tYWluKSBhd2FpdCBnZWFyKCk7Cg&name=gear">Open in playground</a><a class="button" href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/gear.ts">View on GitHub</a><a class="button" href="index.html">All examples</a></div><div class="figures"><figure><img src="../images/examples/gear-gear.png" alt="gear"><figcaption>gear</figcaption></figure></div>
+<h2 id="source"><a class="anchor" href="#source" aria-hidden="true">#</a>Source</h2>
+<p>Run it with <code>cad run examples/gear.ts</code>.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// A spur-gear-like wheel: a hub with trapezoid teeth spread by a polar pattern, lightening</span>
+<span class="t-c">// holes and a keyed bore. (Straight-flank teeth, not a true involute.)</span>
+<span class="t-c">// Run: cad run examples/gear.ts</span>
+<span class="t-k">import</span> { box, circle, cylinder, model, param, polygon, sel } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">export</span> <span class="t-k">const</span> gear = <span class="t-f">model</span>(<span class="t-s">"gear"</span>, () =&gt; {
+  <span class="t-k">const</span> teeth = <span class="t-f">param</span>(<span class="t-s">"teeth"</span>, <span class="t-n">24</span>, { min: <span class="t-n">8</span>, max: <span class="t-n">80</span>, step: <span class="t-n">1</span> });
+  <span class="t-k">const</span> m = <span class="t-f">param</span>(<span class="t-s">"module"</span>, <span class="t-n">2</span>, { min: <span class="t-n">0.5</span>, max: <span class="t-n">5</span>, step: <span class="t-n">0.25</span>, unit: <span class="t-s">"mm"</span> });
+  <span class="t-k">const</span> t = <span class="t-f">param</span>(<span class="t-s">"thickness"</span>, <span class="t-n">8</span>, { min: <span class="t-n">2</span>, max: <span class="t-n">30</span>, unit: <span class="t-s">"mm"</span> });
+
+  <span class="t-k">const</span> pitch = (m * teeth) / <span class="t-n">2</span>;
+  <span class="t-k">const</span> tip = pitch + m, root = pitch - <span class="t-n">1.25</span> * m;
+  <span class="t-k">const</span> pitchAngle = (<span class="t-n">2</span> * Math.PI) / teeth;
+  <span class="t-k">const</span> rootHalf = (root * pitchAngle) / <span class="t-n">4</span> + <span class="t-n">0.4</span> * m, tipHalf = <span class="t-n">0.35</span> * m;
+
+  <span class="t-k">const</span> blank = <span class="t-f">circle</span>(root).<span class="t-f">hole</span>(<span class="t-f">circle</span>(<span class="t-n">5</span>)).<span class="t-f">extrude</span>(t);
+  <span class="t-k">const</span> tooth = <span class="t-f">polygon</span>([[root - m, -rootHalf], [tip, -tipHalf], [tip, tipHalf], [root - m, rootHalf]]).<span class="t-f">extrude</span>(t);
+  <span class="t-k">const</span> hole = <span class="t-f">cylinder</span>((root - <span class="t-n">12</span>) / <span class="t-n">4</span>, t * <span class="t-n">3</span>).<span class="t-f">translate</span>((root + <span class="t-n">8</span>) / <span class="t-n">2</span>, <span class="t-n">0</span>, <span class="t-n">0</span>);
+  <span class="t-k">const</span> key = <span class="t-f">box</span>(<span class="t-n">4</span>, <span class="t-n">3</span>, t * <span class="t-n">3</span>).<span class="t-f">translate</span>(<span class="t-n">5</span>, <span class="t-n">0</span>, <span class="t-n">0</span>);
+
+  <span class="t-k">return</span> blank
+    .<span class="t-f">fuse</span>(tooth.<span class="t-f">polarCopies</span>(teeth))
+    .<span class="t-f">cut</span>(hole.<span class="t-f">polarCopies</span>(<span class="t-n">5</span>), key)
+    .<span class="t-f">chamfer</span>(sel.<span class="t-f">radius</span>(<span class="t-n">5</span>).<span class="t-f">and</span>(sel.<span class="t-k">type</span>(<span class="t-s">"circle"</span>), <span class="t-s">"&gt;Z or &lt;Z"</span>), <span class="t-n">0.6</span>)    <span class="t-c">// both ends of the bore</span>
+    .<span class="t-f">label</span>(<span class="t-s">"gear"</span>, { color: <span class="t-s">"#b08d57"</span>, material: <span class="t-s">"brass"</span> });
+});
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) <span class="t-k">await</span> <span class="t-f">gear</span>();
+</code></pre><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/gear.ts">Source of this page</a></p></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

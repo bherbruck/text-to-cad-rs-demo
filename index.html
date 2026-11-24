@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-root="./">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>text-to-cad: design physical products with AI</title>
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="index.html"><img src="assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="docs/index.html">Docs</a><a href="skills/cad.html">Skills</a><a href="examples/index.html">Examples</a><a href="gallery/index.html">Gallery</a><a href="cli/index.html">CLI</a><a class="play" href="play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<main class="wide">
+<section class="hero">
+  <h1>Design physical products with AI.</h1>
+  <p class="lede">An agent writes a model as TypeScript, a B-rep kernel builds it, and a live viewer follows every run. Rust engine, Open CASCADE by default, STEP · STL · 3MF · GLB · DXF out. It runs locally, or entirely in your browser.</p>
+  <div class="actions"><a class="button primary" href="play/index.html">Try it in your browser</a><a class="button" href="skills/cad.html">Read the docs</a><a class="button" href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></div>
+</section>
+<section class="hero-images"><figure><img src="images/hero/render.png" alt="Enclosure rendered photoreal"><figcaption>A path-traced render (cad model render --preset final)</figcaption></figure><figure><img src="images/hero/drawing.svg" alt="Engineering drawing of the bracket"><figcaption>An engineering drawing (cad model export ID bracket.svg)</figcaption></figure><figure><img src="images/hero/fea.png" alt="Bracket coloured by stress"><figcaption>A stress check (cad model fea): 300 N on the bracket, von Mises</figcaption></figure></section>
+<section class="split">
+  <div><h2 id="a-model-is-a-script">A model is a script</h2><pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// src/bracket.ts</span>
+<span class="t-k">import</span> { model, box, cylinder } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">export</span> <span class="t-k">const</span> bracket = <span class="t-f">model</span>(<span class="t-s">"bracket"</span>, () =&gt;
+  <span class="t-f">box</span>(<span class="t-n">40</span>, <span class="t-n">20</span>, <span class="t-n">6</span>)
+    .<span class="t-f">cut</span>(<span class="t-f">cylinder</span>(<span class="t-n">4</span>, <span class="t-n">6</span>))
+    .<span class="t-f">fillet</span>(<span class="t-s">"|Z"</span>, <span class="t-n">2</span>)
+    .<span class="t-f">label</span>(<span class="t-s">"bracket"</span>, { color: <span class="t-s">"#4a6fa5"</span>, material: <span class="t-s">"aluminum"</span> }),
+);
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) <span class="t-k">await</span> <span class="t-f">bracket</span>();
+</code></pre></div>
+  <div><h2 id="run-it">Run it</h2><pre class="code" data-lang="text"><code>$ cad run src/bracket.ts
+built src/bracket.ts::bracket in 0.12s: 5 ops, 0 hits, 5 misses
+  parts 1 · bounds 40 × 20 × 6 mm · volume 4498.4 mm³ · mass 12.1 g
+  id: 0dc50a92-a21f-5895-a245-ebdeb5352f3b
+  view: http://127.0.0.1:7878/view/0dc50a92-…?token=…
+</code></pre><p>The agent reads the numbers back, takes snapshots and looks at them, checks interference and manufacturability, and exports when it is right. Skills teach it how.</p></div>
+</section>
+<section><h2 id="skills">Skills</h2><div class="features"><a class="feature" href="skills/cad.html"><h3>cad</h3><p>Designs and edits 3D CAD - parametric parts, assemblies and 2D cut profiles, written as TypeScript with @cad/sdk and shown live in the cad viewer.</p></a><a class="feature" href="skills/fea.html"><h3>fea</h3><p>Checks whether a part, or an assembly of bonded parts, is strong and stiff enough under its loads, as a linear static stress study (FEA) with gmsh and CalculiX.</p></a><a class="feature" href="skills/pcb.html"><h3>pcb</h3><p>Designs, checks and exports circuit boards and schematics as native KiCad files (.kicad_sch, .kicad_pcb, .kicad_pro).</p></a><a class="feature" href="skills/render.html"><h3>render</h3><p>Renders photoreal pictures and turntables of a text-to-cad model - a hero shot, a product or README picture, a transparent cut-out, a posed mechanism, a frame of an animation, a turntable GIF.</p></a><a class="feature" href="skills/robot-simulation.html"><h3>robot simulation</h3><p>Generates and checks robot descriptions (URDF for ROS, MJCF for MuJoCo, SRDF for MoveIt) from a cad model with joints, and checks hand-written ones.</p></a></div></section>
+<section><h2 id="examples">Examples</h2><div class="cards"><a class="card" href="examples/arm.html"><img src="images/examples/arm-arm.png" alt="arm" loading="lazy"><div class="card-body"><h3>arm</h3><p>A 2-link arm: a turntable on a base, an upper arm on a shoulder, a forearm on an elbow riding on it. Each joint moves everything after it. Run: cad run examples/arm.ts, then pose i…</p><code>examples/arm.ts</code></div></a><a class="card" href="examples/blinky_pcb.html"><div class="noimg">blinky_pcb</div><div class="card-body"><h3>blinky_pcb</h3><p>A circuit board: an LED blinker powered from USB-C. A 555 timer in astable mode flashes the LED about once a second (R1 10k, R2 47k, C1 10u), the two 5.1k resistors on CC1/CC2 ask …</p><code>examples/blinky_pcb.ts</code></div></a><a class="card" href="examples/bracket.html"><img src="images/examples/bracket-bracket.png" alt="bracket" loading="lazy"><div class="card-body"><h3>bracket</h3><p>An L-bracket: a base and an upright, an inside fillet, mounting holes in both legs and rounded front corners. Run: cad run examples/bracket.ts</p><code>examples/bracket.ts</code></div></a><a class="card" href="examples/enclosure.html"><img src="images/examples/enclosure-enclosure.png" alt="enclosure" loading="lazy"><div class="card-body"><h3>enclosure</h3><p>A two-part enclosure: a shelled base with screw bosses and a lid with a locating lip, each its own model (to print or export alone) and together as an assembly. Run: cad run exampl…</p><code>examples/enclosure.ts</code></div></a><a class="card" href="examples/esp32_pcb.html"><div class="noimg">esp32_pcb</div><div class="card-body"><h3>esp32_pcb</h3><p>A denser board, autorouted: an ESP32-C3 breakout on four layers. USB-C into a CH340C USB-serial bridge and an AMS1117 3.3 V regulator, EN and BOOT buttons, a status LED, and two 8-…</p><code>examples/esp32_pcb.ts</code></div></a><a class="card" href="examples/fasteners.html"><img src="images/examples/fasteners-bolted_joint.png" alt="fasteners" loading="lazy"><div class="card-body"><h3>fasteners</h3><p>The standard-parts library (`parts`): an M5 socket-head screw through a counterbored clearance hole in a plate, with a washer and a nyloc nut under it; a 608 bearing; a GT2 pulley;…</p><code>examples/fasteners.ts</code></div></a><a class="card" href="examples/gear.html"><img src="images/examples/gear-gear.png" alt="gear" loading="lazy"><div class="card-body"><h3>gear</h3><p>A spur-gear-like wheel: a hub with trapezoid teeth spread by a polar pattern, lightening holes and a keyed bore. (Straight-flank teeth, not a true involute.) Run: cad run examples/…</p><code>examples/gear.ts</code></div></a><a class="card" href="examples/gear_train.html"><img src="images/examples/gear_train-gear_train.png" alt="gear_train" loading="lazy"><div class="card-body"><h3>gear_train</h3><p>Gears and a rack coupled to one driver: posing the drive gear turns the idler the other way at the ratio of their radii and slides the rack by the pitch circle. A looping `run` ani…</p><code>examples/gear_train.ts</code></div></a></div><p><a href="examples/index.html">All examples →</a> · <a href="gallery/index.html">Gallery: prompts → models →</a></p></section>
+<section><h2 id="install">Install and build</h2></section><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/README.md">Source of this page</a></p></main>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

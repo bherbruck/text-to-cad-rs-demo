@@ -1,0 +1,29 @@
+occt-rs
+Copyright (c) 2026 occt-rs contributors
+Licensed under MIT OR Apache-2.0.
+
+This software makes use of and is based on facilities provided by the
+Open CASCADE Technology software.
+
+Open CASCADE Technology is not covered by the licence above. It is licensed
+under the GNU Lesser General Public License version 2.1 with the Open CASCADE
+exception version 1.0. See crates/occt-capi-sys/licenses/ for both texts.
+Source code: https://github.com/Open-Cascade-SAS/OCCT
+
+---
+
+text-to-cad (the project this one reimplements)
+Copyright (c) 2026 Thompson Labs LLC. MIT licence: see LICENSE-text-to-cad.
+https://github.com/earthtojake/text-to-cad
+
+This repository is a reimplementation in Rust and TypeScript of text-to-cad's workflow and
+command-line surface. Material adapted from text-to-cad, and therefore covered by its notice:
+  - the structure, wording and checklists of the agent skills in skills/ (cad, fea, pcb,
+    render, robot-simulation, and the manufacturing and drawing references), rewritten for this
+    tool's commands;
+  - the test scenarios and expected values ported from its test suite (docs/test-port.md lists
+    each original test file and what became of it);
+  - the shape of the HTTP/CLI contract and the reference grammar (docs/api.md, docs/cli.md),
+    redesigned for this implementation;
+  - the plugin and installer layout (scripts/install, the plugin manifests).
+No source code was copied from text-to-cad's Python or JavaScript packages.

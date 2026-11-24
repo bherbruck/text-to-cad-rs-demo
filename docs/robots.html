@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot descriptions · text-to-cad</title>
+
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="index.html" aria-current="page">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../skills/cad.html">CAD modeling and inspection</a></li><li><a href="../skills/fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../skills/pcb.html">Circuit boards</a></li><li><a href="../skills/render.html">Renders for people</a></li><li><a href="../skills/robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="api.html">Server API (cad server)</a></li><li><a href="cli.html">cad command line</a></li><li><a href="index.html">Documentation</a></li><li><a href="install.html">Installing text-to-cad-rs</a></li><li><a href="ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="licenses.html">Licences</a></li><li><a href="quality-report.html">Workspace quality report</a></li><li class="current"><a href="robots.html">Robot descriptions</a></li><li><a href="security.html">Security and resource limits</a></li><li><a href="test-port.html">Porting the original test suite</a></li><li><a href="test-status.html">Test status</a></li></ul></div></aside><main><h1 id="robot-descriptions"><a class="anchor" href="#robot-descriptions" aria-hidden="true">#</a>Robot descriptions</h1>
+<p>A model whose assembly declares joints (docs/ir.md &quot;Joints&quot;) exports as a robot description, by
+suffix: <code>cad model export ID robot.urdf</code>, <code>robot.xml</code> (or <code>.mjcf</code>) for MuJoCo, <code>robot.srdf</code> for
+MoveIt. The crate is <code>crates/cad-robot</code>; the server's export route and the CLI call it.</p>
+<h2 id="what-a-description-holds"><a class="anchor" href="#what-a-description-holds" aria-hidden="true">#</a>What a description holds</h2>
+<ul><li><strong>Links.</strong> One per joint (the parts the joint places: those in its <code>moves</code> whose last joint in<p>chain order it is), and the root: the parts no joint moves. The root's link is named <code>base</code>, hung
+from an empty <code>base_link</code> on a fixed <code>base_link_joint</code> (KDL takes no inertia on a root); with no
+unmoved part the root is <code>base_link</code> itself. A joint's child link is named after its child's last
+label, made unique with <code>_2</code>.</p></li><li><strong>Frames.</strong> Every link frame has the document's axes. A revolute or prismatic joint's child link<p>frame sits on its axis origin as built; a fixed joint's child shares its parent's. So every
+<code>&lt;origin rpy&gt;</code> is <code>0 0 0</code>, a joint's <code>&lt;origin xyz&gt;</code> is the difference of the two frames, and
+its <code>&lt;axis&gt;</code> is the declared direction, unit length.</p></li><li><strong>Zero.</strong> The as-built pose is every joint's zero. Limits are written as offsets from it,<p><code>[min − default, max − default]</code>, in radians or metres. A revolute without limits is
+<code>continuous</code>; a prismatic without limits is written ± the model's extent, with a warning.</p></li><li><strong>Drive limits.</strong> The IR declares none, so <code>effort</code> and <code>velocity</code> are written <code>0</code>, with a<p>warning (<code>cad urdf validate</code> warns <code>zero_effort</code>/<code>zero_velocity</code>).</p></li><li><strong>Meshes.</strong> One binary STL per part, in metres and in its link's frame, at the viewer's mesh<p>tolerance, named <code>&lt;model&gt;_&lt;part path&gt;.stl</code>: in <code>meshes/</code> beside a URDF (or
+<code>package://NAME/meshes/</code> with <code>--package NAME</code>), in <code>assets/</code> beside an MJCF (its <code>meshdir</code>).
+Each part is its link's visual and its collision (MuJoCo collides a mesh as its convex hull).</p></li><li><strong>Inertials.</strong> Exact: each part's mass is its kernel volume × its material's density; its centre<p>of mass is the kernel's; its tensor comes from the part's closed mesh at a quarter of the viewer's
+tolerance, scaled to that mass, and the link's is the sum about the link's centre of mass
+(parallel axes), in kg and kg·m². A part with no material weighs nothing, and the export says so; a
+moving link without mass is warned of (a simulator refuses it).</p></li><li><strong>Poses.</strong> Named poses become MJCF <code>&lt;key&gt;</code>s (qpos in body order, radians/metres from as built)<p>and SRDF <code>&lt;group_state&gt;</code>s. URDF has none.</p></li></ul>
+<h2 id="formats"><a class="anchor" href="#formats" aria-hidden="true">#</a>Formats</h2>
+<ul><li><strong>URDF</strong>: <code>&lt;material&gt;</code>s by colour, then the root link, then each joint followed by its child,<p>depth first. Numbers have up to 9 significant digits. The same model writes the same bytes.</p></li><li><strong>MJCF</strong>: <code>&lt;compiler angle=&quot;radian&quot; meshdir=&quot;assets&quot; autolimits=&quot;true&quot;/&gt;</code>, bodies nested by the<p>tree with a <code>hinge</code>/<code>slide</code> joint at each body's origin, <code>&lt;inertial fullinertia&gt;</code>, one mesh geom
+per part, keyframes. A <code>scene.xml</code> (the robot included, a floor, a light) is written once beside
+it and never overwritten: it is yours to edit.</p></li><li><strong>SRDF</strong>: one group named after the robot, a <code>&lt;chain&gt;</code> from <code>base_link</code> to the tip where the<p>movable joints make one chain, else the joints listed; a <code>&lt;group_state&gt;</code> per pose (every joint of
+the group); <code>&lt;disable_collisions&gt;</code> for each joint's two links (<code>Adjacent</code>) and for each pair of
+links with geometry that never touch over the sampled poses (<code>Never</code>): as built, every named
+pose, each joint alone at 0, ¼, ½, ¾ and all of its range, and 24 fixed pseudo-random spreads.</p></li></ul>
+<h2 id="checks"><a class="anchor" href="#checks" aria-hidden="true">#</a>Checks</h2>
+<p><code>cad urdf validate</code>, <code>cad srdf validate</code> and <code>cad mujoco check</code> print one line per finding,
+<code>severity: code at location: message Hint: …</code>, then <code>OK file: summary</code> or <code>FAILED file: …</code>. Exit 0
+passes, 1 fails (an error, or any warning with <code>--strict</code>), 2 refused. <code>--json</code> prints the report
+as one object <code>{file, ok, findings: [{severity, code, at, message, hint}], summary}</code>.</p>
+<div class="table"><table><thead><tr><th>Check</th><th>Errors</th><th>Warnings</th></tr></thead><tbody><tr><td>URDF</td><td><code>not_xml</code>, <code>not_a_robot</code>, <code>duplicate_link</code>, <code>duplicate_joint</code>, <code>unknown_link</code>, <code>two_parents</code>, <code>multiple_roots</code>, <code>no_root</code>, <code>disconnected</code>, <code>bad_joint_type</code>, <code>bad_axis</code>, <code>missing_limit</code>, <code>limit_order</code>, <code>bad_mimic</code>, <code>bad_geometry</code>, <code>mesh_missing</code>, <code>bad_mass</code>, <code>bad_inertia</code></td><td><code>missing_axis</code>, <code>axis_not_unit</code>, <code>missing_effort</code>/<code>missing_velocity</code>, <code>zero_effort</code>/<code>zero_velocity</code>, <code>limit_on_fixed</code>, <code>limit_on_continuous</code>, <code>joint_link_name_collision</code>, <code>moving_link_without_inertial</code>, <code>inertia_triangle</code>, <code>negative_scale</code>, <code>mesh_extension</code>, <code>package_unresolved</code>, <code>remote_mesh</code>, <code>unknown_element</code>, <code>undefined_material</code></td></tr><tr><td>SRDF</td><td><code>no_urdf</code> (exactly one URDF of the robot's name beside it), <code>urdf_invalid</code>, <code>unknown_link</code>, <code>unknown_joint</code>, <code>unknown_group</code>, <code>bad_chain</code>, <code>state_out_of_limits</code>, <code>self_pair</code>, <code>duplicate_group</code></td><td><code>incomplete_state</code>, <code>duplicate_pair</code>, <code>missing_reason</code></td></tr><tr><td>MJCF</td><td><code>not_mjcf</code>, <code>include_missing</code>, <code>mesh_missing</code>, <code>mesh_format</code>, <code>duplicate_name</code>, <code>bad_mass</code>, <code>bad_inertia</code>, <code>massless_body</code>, <code>range_order</code>, <code>bad_range</code>, <code>bad_axis</code>, <code>key_size</code>, <code>mujoco_compile</code></td><td><code>degrees</code> (no <code>angle=&quot;radian&quot;</code>)</td></tr></tbody></table></div>
+<p><code>cad mujoco check</code> also runs MuJoCo's own compile when <code>python3 -c &quot;import mujoco&quot;</code> works
+(<code>mujoco_compiled</code> / <code>mujoco_compile</code>), else says it was skipped (<code>mujoco_skipped</code>).</p>
+<p>A clean check is a guardrail, not proof: it cannot tell that an axis or a sign is the robot's.
+Move each joint through its limits (<code>cad model snapshot ID out.png --pose joint=value</code>).</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/docs/robots.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#what-a-description-holds">What a description holds</a></li><li class="l2"><a href="#formats">Formats</a></li><li class="l2"><a href="#checks">Checks</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

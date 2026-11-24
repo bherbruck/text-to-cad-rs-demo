@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fasteners · text-to-cad</title>
+<meta name="description" content="The standard-parts library (`parts`): an M5 socket-head screw through a counterbored clearance hole in a plate, with a washer and a nyloc nut under it; a 608 bearing; a GT2 pulley; a meshing gear pair; a NEMA 17 on a T-slot rail. `cad model bom &lt;id&gt;` lists what to buy. Run: cad run examples/fasteners.ts">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="index.html" aria-current="page">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Examples</h4><ul><li><a href="index.html">All examples</a></li><li><a href="arm.html">arm</a></li><li><a href="blinky_pcb.html">blinky_pcb</a></li><li><a href="bracket.html">bracket</a></li><li><a href="enclosure.html">enclosure</a></li><li><a href="esp32_pcb.html">esp32_pcb</a></li><li class="current"><a href="fasteners.html">fasteners</a></li><li><a href="gear.html">gear</a></li><li><a href="gear_train.html">gear_train</a></li><li><a href="hinge_box.html">hinge_box</a></li><li><a href="knob.html">knob</a></li><li><a href="plate.html">plate</a></li><li><a href="spring.html">spring</a></li></ul></div><div class="group"><h4>Gallery</h4><ul><li><a href="../gallery/index.html">Prompts → models</a></li><li><a href="dogfood-01-nema17-mount.html">01-nema17-mount</a></li><li><a href="dogfood-02-pipe-tee.html">02-pipe-tee</a></li><li><a href="dogfood-03-phone-stand.html">03-phone-stand</a></li><li><a href="dogfood-04-desk-tray.html">04-desk-tray</a></li><li><a href="dogfood-05-sprocket.html">05-sprocket</a></li><li><a href="dogfood-06-living-hinge-box.html">06-living-hinge-box</a></li><li><a href="dogfood-07-sheet-bracket.html">07-sheet-bracket</a></li><li><a href="dogfood-08-gripper.html">08-gripper</a></li><li><a href="dogfood-09-bme280-breakout.html">09-bme280-breakout</a></li><li><a href="dogfood-10-printed-bolt.html">10-printed-bolt</a></li></ul></div></aside><main><h1 id="top">fasteners</h1><p class="lede">The standard-parts library (`parts`): an M5 socket-head screw through a counterbored clearance hole in a plate, with a washer and a nyloc nut under it; a 608 bearing; a GT2 pulley; a meshing gear pair; a NEMA 17 on a T-slot rail. `cad model bom &lt;id&gt;` lists what to buy. Run: cad run examples/fasteners.ts</p><div class="actions"><a class="button primary" href="../play/index.html#code=Ly8gVGhlIHN0YW5kYXJkLXBhcnRzIGxpYnJhcnkgKGBwYXJ0c2ApOiBhbiBNNSBzb2NrZXQtaGVhZCBzY3JldyB0aHJvdWdoIGEgY291bnRlcmJvcmVkIGNsZWFyYW5jZSBob2xlCi8vIGluIGEgcGxhdGUsIHdpdGggYSB3YXNoZXIgYW5kIGEgbnlsb2MgbnV0IHVuZGVyIGl0OyBhIDYwOCBiZWFyaW5nOyBhIEdUMiBwdWxsZXk7IGEgbWVzaGluZyBnZWFyCi8vIHBhaXI7IGEgTkVNQSAxNyBvbiBhIFQtc2xvdCByYWlsLiBgY2FkIG1vZGVsIGJvbSA8aWQ-YCBsaXN0cyB3aGF0IHRvIGJ1eS4KLy8gUnVuOiBjYWQgcnVuIGV4YW1wbGVzL2Zhc3RlbmVycy50cwppbXBvcnQgeyBhc3NlbWJseSwgYm94LCBtb2RlbCwgcGFydHMgfSBmcm9tICJAY2FkL3NkayI7Cgpjb25zdCBUID0gODsgLy8gcGxhdGUgdGhpY2tuZXNzCgpleHBvcnQgY29uc3QgYm9sdGVkID0gbW9kZWwoImJvbHRlZF9qb2ludCIsICgpID0-IHsKICBjb25zdCBob2xlID0gcGFydHMuY2xlYXJhbmNlSG9sZSgiTTUiLCBULCB7IGNvdW50ZXJib3JlOiB0cnVlIH0pOwogIGNvbnN0IHBsYXRlID0gYm94KDQwLCAzMCwgVCwgeyBhbGlnbjogWyJjZW50ZXIiLCAiY2VudGVyIiwgIm1heCJdIH0pCiAgICAuY3V0KGhvbGUudHJhbnNsYXRlKC0xMCwgMCwgMCksIGhvbGUudHJhbnNsYXRlKDEwLCAwLCAwKSkKICAgIC5sYWJlbCgicGxhdGUiLCB7IGNvbG9yOiAiIzRhNmZhNSIsIG1hdGVyaWFsOiAiYWx1bWludW0iIH0pOwogIGNvbnN0IGNiID0gcGFydHMudGFibGVzLklTTzQ3NjIuTTUuayArIDAuNDsgICAgICAgICAgICAgIC8vIHRoZSBjb3VudGVyYm9yZSdzIGRlcHRoCiAgY29uc3Qgc2NyZXcgPSBwYXJ0cy5zb2NrZXRIZWFkU2NyZXcoIk01IiwgMjUsIHsgbWF0ZXJpYWw6ICJzdGFpbmxlc3MiIH0pOwogIGNvbnN0IHdhc2hlciA9IHBhcnRzLndhc2hlcigiTTUiLCB7IG1hdGVyaWFsOiAic3RhaW5sZXNzIiB9KTsKICBjb25zdCBudXQgPSBwYXJ0cy5ueWxvY051dCgiTTUiLCB7IG1hdGVyaWFsOiAic3RhaW5sZXNzIiB9KTsKICBjb25zdCBhdCA9ICh4OiBudW1iZXIpID0-IFsKICAgIHNjcmV3LnRyYW5zbGF0ZSh4LCAwLCAtY2IpLCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLy8gaGVhZCBkb3duIGluIGl0cyBjb3VudGVyYm9yZQogICAgd2FzaGVyLnRyYW5zbGF0ZSh4LCAwLCAtVCAtIHBhcnRzLnRhYmxlcy5JU083MDg5Lk01LmgpLmxhYmVsKGB3YXNoZXJfJHt4IDwgMCA_ICJsIiA6ICJyIn1gKSwKICAgIG51dC5yb3RhdGVYKDE4MCkudHJhbnNsYXRlKHgsIDAsIC1UIC0gcGFydHMudGFibGVzLklTTzcwODkuTTUuaCkubGFiZWwoYG51dF8ke3ggPCAwID8gImwiIDogInIifWApLAogIF07CiAgcmV0dXJuIGFzc2VtYmx5KCJqb2ludCIsIFtwbGF0ZSwgLi4uYXQoLTEwKS5tYXAoKHAsIGkpID0-IChpID09PSAwID8gcC5sYWJlbCgic2NyZXdfbCIpIDogcCkpLCAuLi5hdCgxMCkubWFwKChwLCBpKSA9PiAoaSA9PT0gMCA_IHAubGFiZWwoInNjcmV3X3IiKSA6IHApKV0pOwp9KTsKCmV4cG9ydCBjb25zdCBiZWFyaW5nNjA4ID0gbW9kZWwoImJlYXJpbmdfNjA4IiwgKCkgPT4gcGFydHMuYmVhcmluZygiNjA4IiwgeyBkZXRhaWw6ICJiYWxscyIgfSkpOwpleHBvcnQgY29uc3QgcHVsbGV5ID0gbW9kZWwoImd0Ml9wdWxsZXkiLCAoKSA9PiBwYXJ0cy5ndDJQdWxsZXkoMjApKTsKCmV4cG9ydCBjb25zdCBnZWFyUGFpciA9IG1vZGVsKCJnZWFyX3BhaXIiLCAoKSA9PiB7CiAgY29uc3QgbSA9IDIsIHoxID0gMTgsIHoyID0gMzAsIHcgPSA4OwogIGNvbnN0IG1lc2ggPSBwYXJ0cy5nZWFyTWVzaChtLCB6MSwgejIpOwogIHJldHVybiBhc3NlbWJseSgiZ2VhcnMiLCBbCiAgICBwYXJ0cy5zcHVyR2Vhcih7IG1vZHVsZTogbSwgdGVldGg6IHoxLCB3aWR0aDogdywgYm9yZTogOCwgZEZsYXQ6IDcuNSB9KS5sYWJlbCgicGluaW9uIiksCiAgICBwYXJ0cy5zcHVyR2Vhcih7IG1vZHVsZTogbSwgdGVldGg6IHoyLCB3aWR0aDogdywgYm9yZTogMTIsIGtleXdheTogeyB3aWR0aDogNCwgZGVwdGg6IDEuOCB9IH0pLmxhYmVsKCJ3aGVlbCIpLnJvdGF0ZVoobWVzaC50dXJuKS50cmFuc2xhdGUobWVzaC5kaXN0YW5jZSwgMCwgMCksCiAgXSk7Cn0pOwoKZXhwb3J0IGNvbnN0IG1vdG9yUmFpbCA9IG1vZGVsKCJtb3Rvcl9vbl9yYWlsIiwgKCkgPT4gewogIC8vIGEgcGxhdGUgb24gYSByYWlsLCB0aGUgbW90b3IgaGFuZ2luZyB1bmRlciBpdCB3aXRoIGl0cyBzaGFmdCB1cCB0aHJvdWdoIHRoZSBwbGF0ZQogIGNvbnN0IHBsYXRlID0gYm94KDYwLCAxMDAsIDUsIHsgYWxpZ246IFsiY2VudGVyIiwgIm1pbiIsICJtYXgiXSB9KS50cmFuc2xhdGUoMCwgLTMwLCAwKQogICAgLmN1dChwYXJ0cy5uZW1hSG9sZXMoMTcsIDUpKQogICAgLmxhYmVsKCJtb3Rvcl9wbGF0ZSIsIHsgbWF0ZXJpYWw6ICJhbHVtaW51bSIsIGNvbG9yOiAiIzRhNmZhNSIgfSk7CiAgcmV0dXJuIGFzc2VtYmx5KCJkcml2ZSIsIFsKICAgIHBhcnRzLnRTbG90MjAyMCgyMDApLnJvdGF0ZVkoOTApLnRyYW5zbGF0ZSgtMTAwLCA1OCwgLTE1KSwKICAgIHBsYXRlLAogICAgcGFydHMubmVtYU1vdG9yKDE3LCB7IGxlbmd0aDogNDAgfSkudHJhbnNsYXRlKDAsIDAsIC01KSwKICBdKTsKfSk7CgppZiAoaW1wb3J0Lm1ldGEubWFpbikgewogIGF3YWl0IGJvbHRlZCgpOwogIGF3YWl0IGJlYXJpbmc2MDgoKTsKICBhd2FpdCBwdWxsZXkoKTsKICBhd2FpdCBnZWFyUGFpcigpOwogIGF3YWl0IG1vdG9yUmFpbCgpOwp9Cg&name=fasteners">Open in playground</a><a class="button" href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/fasteners.ts">View on GitHub</a><a class="button" href="index.html">All examples</a></div><div class="figures"><figure><img src="../images/examples/fasteners-bolted_joint.png" alt="bolted_joint"><figcaption>bolted_joint</figcaption></figure><figure><img src="../images/examples/fasteners-bearing_608.png" alt="bearing_608"><figcaption>bearing_608</figcaption></figure><figure><img src="../images/examples/fasteners-gt2_pulley.png" alt="gt2_pulley"><figcaption>gt2_pulley</figcaption></figure><figure><img src="../images/examples/fasteners-gear_pair.png" alt="gear_pair"><figcaption>gear_pair</figcaption></figure><figure><img src="../images/examples/fasteners-motor_on_rail.png" alt="motor_on_rail"><figcaption>motor_on_rail</figcaption></figure></div>
+<h2 id="source"><a class="anchor" href="#source" aria-hidden="true">#</a>Source</h2>
+<p>Run it with <code>cad run examples/fasteners.ts</code>.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// The standard-parts library (`parts`): an M5 socket-head screw through a counterbored clearance hole</span>
+<span class="t-c">// in a plate, with a washer and a nyloc nut under it; a 608 bearing; a GT2 pulley; a meshing gear</span>
+<span class="t-c">// pair; a NEMA 17 on a T-slot rail. `cad model bom &lt;id&gt;` lists what to buy.</span>
+<span class="t-c">// Run: cad run examples/fasteners.ts</span>
+<span class="t-k">import</span> { assembly, box, model, parts } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">const</span> T = <span class="t-n">8</span>; <span class="t-c">// plate thickness</span>
+
+<span class="t-k">export</span> <span class="t-k">const</span> bolted = <span class="t-f">model</span>(<span class="t-s">"bolted_joint"</span>, () =&gt; {
+  <span class="t-k">const</span> hole = parts.<span class="t-f">clearanceHole</span>(<span class="t-s">"M5"</span>, T, { counterbore: <span class="t-k">true</span> });
+  <span class="t-k">const</span> plate = <span class="t-f">box</span>(<span class="t-n">40</span>, <span class="t-n">30</span>, T, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"max"</span>] })
+    .<span class="t-f">cut</span>(hole.<span class="t-f">translate</span>(-<span class="t-n">10</span>, <span class="t-n">0</span>, <span class="t-n">0</span>), hole.<span class="t-f">translate</span>(<span class="t-n">10</span>, <span class="t-n">0</span>, <span class="t-n">0</span>))
+    .<span class="t-f">label</span>(<span class="t-s">"plate"</span>, { color: <span class="t-s">"#4a6fa5"</span>, material: <span class="t-s">"aluminum"</span> });
+  <span class="t-k">const</span> cb = parts.tables.ISO4762.M5.k + <span class="t-n">0.4</span>;              <span class="t-c">// the counterbore's depth</span>
+  <span class="t-k">const</span> screw = parts.<span class="t-f">socketHeadScrew</span>(<span class="t-s">"M5"</span>, <span class="t-n">25</span>, { material: <span class="t-s">"stainless"</span> });
+  <span class="t-k">const</span> washer = parts.<span class="t-f">washer</span>(<span class="t-s">"M5"</span>, { material: <span class="t-s">"stainless"</span> });
+  <span class="t-k">const</span> nut = parts.<span class="t-f">nylocNut</span>(<span class="t-s">"M5"</span>, { material: <span class="t-s">"stainless"</span> });
+  <span class="t-k">const</span> at = (x: number) =&gt; [
+    screw.<span class="t-f">translate</span>(x, <span class="t-n">0</span>, -cb),                             <span class="t-c">// head down in its counterbore</span>
+    washer.<span class="t-f">translate</span>(x, <span class="t-n">0</span>, -T - parts.tables.ISO7089.M5.h).<span class="t-f">label</span>(<span class="t-s">`washer_${x &lt; 0 ? "l" : "r"}`</span>),
+    nut.<span class="t-f">rotateX</span>(<span class="t-n">180</span>).<span class="t-f">translate</span>(x, <span class="t-n">0</span>, -T - parts.tables.ISO7089.M5.h).<span class="t-f">label</span>(<span class="t-s">`nut_${x &lt; 0 ? "l" : "r"}`</span>),
+  ];
+  <span class="t-k">return</span> <span class="t-f">assembly</span>(<span class="t-s">"joint"</span>, [plate, ...<span class="t-f">at</span>(-<span class="t-n">10</span>).<span class="t-f">map</span>((p, i) =&gt; (i === <span class="t-n">0</span> ? p.<span class="t-f">label</span>(<span class="t-s">"screw_l"</span>) : p)), ...<span class="t-f">at</span>(<span class="t-n">10</span>).<span class="t-f">map</span>((p, i) =&gt; (i === <span class="t-n">0</span> ? p.<span class="t-f">label</span>(<span class="t-s">"screw_r"</span>) : p))]);
+});
+
+<span class="t-k">export</span> <span class="t-k">const</span> bearing608 = <span class="t-f">model</span>(<span class="t-s">"bearing_608"</span>, () =&gt; parts.<span class="t-f">bearing</span>(<span class="t-s">"608"</span>, { detail: <span class="t-s">"balls"</span> }));
+<span class="t-k">export</span> <span class="t-k">const</span> pulley = <span class="t-f">model</span>(<span class="t-s">"gt2_pulley"</span>, () =&gt; parts.<span class="t-f">gt2Pulley</span>(<span class="t-n">20</span>));
+
+<span class="t-k">export</span> <span class="t-k">const</span> gearPair = <span class="t-f">model</span>(<span class="t-s">"gear_pair"</span>, () =&gt; {
+  <span class="t-k">const</span> m = <span class="t-n">2</span>, z1 = <span class="t-n">18</span>, z2 = <span class="t-n">30</span>, w = <span class="t-n">8</span>;
+  <span class="t-k">const</span> mesh = parts.<span class="t-f">gearMesh</span>(m, z1, z2);
+  <span class="t-k">return</span> <span class="t-f">assembly</span>(<span class="t-s">"gears"</span>, [
+    parts.<span class="t-f">spurGear</span>({ module: m, teeth: z1, width: w, bore: <span class="t-n">8</span>, dFlat: <span class="t-n">7.5</span> }).<span class="t-f">label</span>(<span class="t-s">"pinion"</span>),
+    parts.<span class="t-f">spurGear</span>({ module: m, teeth: z2, width: w, bore: <span class="t-n">12</span>, keyway: { width: <span class="t-n">4</span>, depth: <span class="t-n">1.8</span> } }).<span class="t-f">label</span>(<span class="t-s">"wheel"</span>).<span class="t-f">rotateZ</span>(mesh.turn).<span class="t-f">translate</span>(mesh.distance, <span class="t-n">0</span>, <span class="t-n">0</span>),
+  ]);
+});
+
+<span class="t-k">export</span> <span class="t-k">const</span> motorRail = <span class="t-f">model</span>(<span class="t-s">"motor_on_rail"</span>, () =&gt; {
+  <span class="t-c">// a plate on a rail, the motor hanging under it with its shaft up through the plate</span>
+  <span class="t-k">const</span> plate = <span class="t-f">box</span>(<span class="t-n">60</span>, <span class="t-n">100</span>, <span class="t-n">5</span>, { align: [<span class="t-s">"center"</span>, <span class="t-s">"min"</span>, <span class="t-s">"max"</span>] }).<span class="t-f">translate</span>(<span class="t-n">0</span>, -<span class="t-n">30</span>, <span class="t-n">0</span>)
+    .<span class="t-f">cut</span>(parts.<span class="t-f">nemaHoles</span>(<span class="t-n">17</span>, <span class="t-n">5</span>))
+    .<span class="t-f">label</span>(<span class="t-s">"motor_plate"</span>, { material: <span class="t-s">"aluminum"</span>, color: <span class="t-s">"#4a6fa5"</span> });
+  <span class="t-k">return</span> <span class="t-f">assembly</span>(<span class="t-s">"drive"</span>, [
+    parts.<span class="t-f">tSlot2020</span>(<span class="t-n">200</span>).<span class="t-f">rotateY</span>(<span class="t-n">90</span>).<span class="t-f">translate</span>(-<span class="t-n">100</span>, <span class="t-n">58</span>, -<span class="t-n">15</span>),
+    plate,
+    parts.<span class="t-f">nemaMotor</span>(<span class="t-n">17</span>, { length: <span class="t-n">40</span> }).<span class="t-f">translate</span>(<span class="t-n">0</span>, <span class="t-n">0</span>, -<span class="t-n">5</span>),
+  ]);
+});
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) {
+  <span class="t-k">await</span> <span class="t-f">bolted</span>();
+  <span class="t-k">await</span> <span class="t-f">bearing608</span>();
+  <span class="t-k">await</span> <span class="t-f">pulley</span>();
+  <span class="t-k">await</span> <span class="t-f">gearPair</span>();
+  <span class="t-k">await</span> <span class="t-f">motorRail</span>();
+}
+</code></pre><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/fasteners.ts">Source of this page</a></p></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

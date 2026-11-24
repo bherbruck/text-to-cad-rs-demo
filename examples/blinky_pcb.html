@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>blinky_pcb · text-to-cad</title>
+<meta name="description" content="A circuit board: an LED blinker powered from USB-C. A 555 timer in astable mode flashes the LED about once a second (R1 10k, R2 47k, C1 10u), the two 5.1k resistors on CC1/CC2 ask the USB-C source for 5 V, and C3 decouples the timer.  The design is written as a native KiCad project (schematic, board, project) with parts from KiCad's own libraries, routed by hand below, the pours filled by KiCad. Then KiCad's ERC and DRC check it, the fabrication files are written, and the board's STEP opens as a cad model. Needs KiCad 9 or newer installed (its kicad-cli and libraries).  Run: cad run examples/blinky_pcb.ts           (writes out/blinky/, checks it, shows the board)      cad run examples/blinky_pcb.ts --fab     (also writes out/blinky-fab/: gerbers, drill, BOM...)">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="index.html" aria-current="page">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Examples</h4><ul><li><a href="index.html">All examples</a></li><li><a href="arm.html">arm</a></li><li class="current"><a href="blinky_pcb.html">blinky_pcb</a></li><li><a href="bracket.html">bracket</a></li><li><a href="enclosure.html">enclosure</a></li><li><a href="esp32_pcb.html">esp32_pcb</a></li><li><a href="fasteners.html">fasteners</a></li><li><a href="gear.html">gear</a></li><li><a href="gear_train.html">gear_train</a></li><li><a href="hinge_box.html">hinge_box</a></li><li><a href="knob.html">knob</a></li><li><a href="plate.html">plate</a></li><li><a href="spring.html">spring</a></li></ul></div><div class="group"><h4>Gallery</h4><ul><li><a href="../gallery/index.html">Prompts → models</a></li><li><a href="dogfood-01-nema17-mount.html">01-nema17-mount</a></li><li><a href="dogfood-02-pipe-tee.html">02-pipe-tee</a></li><li><a href="dogfood-03-phone-stand.html">03-phone-stand</a></li><li><a href="dogfood-04-desk-tray.html">04-desk-tray</a></li><li><a href="dogfood-05-sprocket.html">05-sprocket</a></li><li><a href="dogfood-06-living-hinge-box.html">06-living-hinge-box</a></li><li><a href="dogfood-07-sheet-bracket.html">07-sheet-bracket</a></li><li><a href="dogfood-08-gripper.html">08-gripper</a></li><li><a href="dogfood-09-bme280-breakout.html">09-bme280-breakout</a></li><li><a href="dogfood-10-printed-bolt.html">10-printed-bolt</a></li></ul></div></aside><main><h1 id="top">blinky_pcb</h1><p class="lede">A circuit board: an LED blinker powered from USB-C. A 555 timer in astable mode flashes the LED about once a second (R1 10k, R2 47k, C1 10u), the two 5.1k resistors on CC1/CC2 ask the USB-C source for 5 V, and C3 decouples the timer.  The design is written as a native KiCad project (schematic, board, project) with parts from KiCad's own libraries, routed by hand below, the pours filled by KiCad. Then KiCad's ERC and DRC check it, the fabrication files are written, and the board's STEP opens as a cad model. Needs KiCad 9 or newer installed (its kicad-cli and libraries).  Run: cad run examples/blinky_pcb.ts           (writes out/blinky/, checks it, shows the board)      cad run examples/blinky_pcb.ts --fab     (also writes out/blinky-fab/: gerbers, drill, BOM...)</p><div class="actions"><a class="button" href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/blinky_pcb.ts">View on GitHub</a><a class="button" href="index.html">All examples</a></div>
+<h2 id="source"><a class="anchor" href="#source" aria-hidden="true">#</a>Source</h2>
+<p>Run it with <code>cad run examples/blinky_pcb.ts</code>.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// A circuit board: an LED blinker powered from USB-C. A 555 timer in astable mode flashes the</span>
+<span class="t-c">// LED about once a second (R1 10k, R2 47k, C1 10u), the two 5.1k resistors on CC1/CC2 ask the</span>
+<span class="t-c">// USB-C source for 5 V, and C3 decouples the timer.</span>
+<span class="t-c">//</span>
+<span class="t-c">// The design is written as a native KiCad project (schematic, board, project) with parts from</span>
+<span class="t-c">// KiCad's own libraries, routed by hand below, the pours filled by KiCad. Then KiCad's ERC and DRC</span>
+<span class="t-c">// check it, the fabrication files are written, and the board's STEP opens as a cad model.</span>
+<span class="t-c">// Needs KiCad 9 or newer installed (its kicad-cli and libraries).</span>
+<span class="t-c">//</span>
+<span class="t-c">// Run: cad run examples/blinky_pcb.ts           (writes out/blinky/, checks it, shows the board)</span>
+<span class="t-c">//      cad run examples/blinky_pcb.ts --fab     (also writes out/blinky-fab/: gerbers, drill, BOM...)</span>
+<span class="t-k">import</span> { importStep, model, pcb, rect } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">export</span> <span class="t-k">function</span> <span class="t-f">blinky</span>(): pcb.PcbDesign {
+  <span class="t-k">const</span> d = pcb.<span class="t-f">design</span>(<span class="t-s">"blinky"</span>, { title: <span class="t-s">"USB-C LED blinker"</span> });
+  <span class="t-k">const</span> R = <span class="t-s">"Resistor_SMD:R_0805_2012Metric"</span>, C = <span class="t-s">"Capacitor_SMD:C_0805_2012Metric"</span>;
+
+  <span class="t-c">// Parts, placed in mm with y up from the board's centre; rotation in degrees.</span>
+  <span class="t-k">const</span> j1 = d.<span class="t-f">part</span>(<span class="t-s">"J1"</span>, { symbol: <span class="t-s">"Connector:USB_C_Receptacle_PowerOnly_6P"</span>, footprint: <span class="t-s">"Connector_USB:USB_C_Receptacle_GCT_USB4125-xx-x_6P_TopMnt_Horizontal"</span>, value: <span class="t-s">"USB-C"</span>, at: [<span class="t-n">0</span>, -<span class="t-n">8.5</span>] });
+  <span class="t-k">const</span> u1 = d.<span class="t-f">part</span>(<span class="t-s">"U1"</span>, { symbol: <span class="t-s">"Timer:NE555D"</span>, footprint: <span class="t-s">"Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"</span>, at: [<span class="t-n">0</span>, <span class="t-n">2</span>] });
+  <span class="t-k">const</span> r1 = d.<span class="t-f">part</span>(<span class="t-s">"R1"</span>, { symbol: <span class="t-s">"Device:R"</span>, footprint: R, value: <span class="t-s">"10k"</span>, at: [<span class="t-n">6.5</span>, <span class="t-n">6.5</span>], rotation: <span class="t-n">270</span> });
+  <span class="t-k">const</span> r2 = d.<span class="t-f">part</span>(<span class="t-s">"R2"</span>, { symbol: <span class="t-s">"Device:R"</span>, footprint: R, value: <span class="t-s">"47k"</span>, at: [<span class="t-n">6.5</span>, <span class="t-n">3</span>], rotation: <span class="t-n">270</span> });
+  <span class="t-k">const</span> c1 = d.<span class="t-f">part</span>(<span class="t-s">"C1"</span>, { symbol: <span class="t-s">"Device:C"</span>, footprint: C, value: <span class="t-s">"10u"</span>, at: [<span class="t-n">8.2</span>, -<span class="t-n">1.5</span>], rotation: <span class="t-n">270</span> });
+  <span class="t-k">const</span> c2 = d.<span class="t-f">part</span>(<span class="t-s">"C2"</span>, { symbol: <span class="t-s">"Device:C"</span>, footprint: C, value: <span class="t-s">"10n"</span>, at: [<span class="t-n">5.2</span>, -<span class="t-n">1.8</span>] });
+  <span class="t-k">const</span> c3 = d.<span class="t-f">part</span>(<span class="t-s">"C3"</span>, { symbol: <span class="t-s">"Device:C"</span>, footprint: C, value: <span class="t-s">"100n"</span>, at: [<span class="t-n">0</span>, <span class="t-n">6.5</span>], rotation: <span class="t-n">180</span> });
+  <span class="t-k">const</span> r3 = d.<span class="t-f">part</span>(<span class="t-s">"R3"</span>, { symbol: <span class="t-s">"Device:R"</span>, footprint: R, value: <span class="t-s">"330"</span>, at: [-<span class="t-n">7</span>, <span class="t-n">1.365</span>], rotation: <span class="t-n">180</span> });
+  <span class="t-k">const</span> d1 = d.<span class="t-f">part</span>(<span class="t-s">"D1"</span>, { symbol: <span class="t-s">"Device:LED"</span>, footprint: <span class="t-s">"LED_SMD:LED_0805_2012Metric"</span>, value: <span class="t-s">"red"</span>, at: [-<span class="t-n">11</span>, <span class="t-n">1.365</span>] });
+  <span class="t-k">const</span> r4 = d.<span class="t-f">part</span>(<span class="t-s">"R4"</span>, { symbol: <span class="t-s">"Device:R"</span>, footprint: R, value: <span class="t-s">"5.1k"</span>, at: [-<span class="t-n">10</span>, -<span class="t-n">6</span>], rotation: <span class="t-n">180</span> });
+  <span class="t-k">const</span> r5 = d.<span class="t-f">part</span>(<span class="t-s">"R5"</span>, { symbol: <span class="t-s">"Device:R"</span>, footprint: R, value: <span class="t-s">"5.1k"</span>, at: [<span class="t-n">10</span>, -<span class="t-n">6</span>] });
+
+  <span class="t-c">// Nets: pins are the symbol's pin numbers (the footprint's pads).</span>
+  d.<span class="t-f">net</span>(<span class="t-s">"VBUS"</span>, j1.<span class="t-f">pin</span>(<span class="t-s">"A9"</span>), j1.<span class="t-f">pin</span>(<span class="t-s">"B9"</span>), u1.<span class="t-f">pin</span>(<span class="t-n">8</span>), u1.<span class="t-f">pin</span>(<span class="t-n">4</span>), r1.<span class="t-f">pin</span>(<span class="t-n">1</span>), c3.<span class="t-f">pin</span>(<span class="t-n">1</span>));
+  d.<span class="t-f">net</span>(<span class="t-s">"GND"</span>, j1.<span class="t-f">pin</span>(<span class="t-s">"A12"</span>), j1.<span class="t-f">pin</span>(<span class="t-s">"B12"</span>), j1.<span class="t-f">pin</span>(<span class="t-s">"SH"</span>), u1.<span class="t-f">pin</span>(<span class="t-n">1</span>), c1.<span class="t-f">pin</span>(<span class="t-n">2</span>), c2.<span class="t-f">pin</span>(<span class="t-n">2</span>), d1.<span class="t-f">pin</span>(<span class="t-n">1</span>), c3.<span class="t-f">pin</span>(<span class="t-n">2</span>), r4.<span class="t-f">pin</span>(<span class="t-n">2</span>), r5.<span class="t-f">pin</span>(<span class="t-n">2</span>));
+  d.<span class="t-f">net</span>(<span class="t-s">"CC1"</span>, j1.<span class="t-f">pin</span>(<span class="t-s">"A5"</span>), r4.<span class="t-f">pin</span>(<span class="t-n">1</span>));
+  d.<span class="t-f">net</span>(<span class="t-s">"CC2"</span>, j1.<span class="t-f">pin</span>(<span class="t-s">"B5"</span>), r5.<span class="t-f">pin</span>(<span class="t-n">1</span>));
+  d.<span class="t-f">net</span>(<span class="t-s">"DIS"</span>, u1.<span class="t-f">pin</span>(<span class="t-n">7</span>), r1.<span class="t-f">pin</span>(<span class="t-n">2</span>), r2.<span class="t-f">pin</span>(<span class="t-n">1</span>));
+  d.<span class="t-f">net</span>(<span class="t-s">"THR"</span>, u1.<span class="t-f">pin</span>(<span class="t-n">6</span>), u1.<span class="t-f">pin</span>(<span class="t-n">2</span>), r2.<span class="t-f">pin</span>(<span class="t-n">2</span>), c1.<span class="t-f">pin</span>(<span class="t-n">1</span>));
+  d.<span class="t-f">net</span>(<span class="t-s">"CTRL"</span>, u1.<span class="t-f">pin</span>(<span class="t-n">5</span>), c2.<span class="t-f">pin</span>(<span class="t-n">1</span>));
+  d.<span class="t-f">net</span>(<span class="t-s">"OUT"</span>, u1.<span class="t-f">pin</span>(<span class="t-n">3</span>), r3.<span class="t-f">pin</span>(<span class="t-n">1</span>));
+  d.<span class="t-f">net</span>(<span class="t-s">"LED_A"</span>, r3.<span class="t-f">pin</span>(<span class="t-n">2</span>), d1.<span class="t-f">pin</span>(<span class="t-n">2</span>));
+
+  <span class="t-c">// The board: a 40 × 25 mm outline with 2 mm corners, drawn as any cad profile.</span>
+  d.<span class="t-f">outline</span>(<span class="t-f">rect</span>(<span class="t-n">40</span>, <span class="t-n">25</span>, { radius: <span class="t-n">2</span> }));
+
+  <span class="t-c">// Routing: signals on top, crossings and the VBUS trunk on the bottom, GND poured on both.</span>
+  <span class="t-k">const</span> top = (net: string, pts: [number, number][], width = <span class="t-n">0.25</span>) =&gt; d.<span class="t-f">track</span>(net, pts, { width });
+  <span class="t-k">const</span> bottom = (net: string, pts: [number, number][], width = <span class="t-n">0.25</span>) =&gt; d.<span class="t-f">track</span>(net, pts, { width, layer: <span class="t-s">"B.Cu"</span> });
+  <span class="t-f">top</span>(<span class="t-s">"DIS"</span>, [[<span class="t-n">2.475</span>, <span class="t-n">2.635</span>], [<span class="t-n">3.5</span>, <span class="t-n">2.635</span>], [<span class="t-n">4.777</span>, <span class="t-n">3.912</span>], [<span class="t-n">6.5</span>, <span class="t-n">3.912</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"DIS"</span>, [[<span class="t-n">6.5</span>, <span class="t-n">5.588</span>], [<span class="t-n">6.5</span>, <span class="t-n">3.912</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"THR"</span>, [[<span class="t-n">6.5</span>, <span class="t-n">2.088</span>], [<span class="t-n">6.5</span>, <span class="t-n">0.5</span>], [<span class="t-n">8.2</span>, -<span class="t-n">0.588</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"THR"</span>, [[<span class="t-n">2.475</span>, <span class="t-n">1.365</span>], [<span class="t-n">6.5</span>, <span class="t-n">1.365</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"THR"</span>, [[-<span class="t-n">2.475</span>, <span class="t-n">2.635</span>], [-<span class="t-n">4.3</span>, <span class="t-n">2.635</span>]]);
+  <span class="t-f">bottom</span>(<span class="t-s">"THR"</span>, [[-<span class="t-n">4.3</span>, <span class="t-n">2.635</span>], [<span class="t-n">4.3</span>, <span class="t-n">1.365</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"CTRL"</span>, [[<span class="t-n">2.475</span>, <span class="t-n">0.095</span>], [<span class="t-n">3.2</span>, <span class="t-n">0.095</span>], [<span class="t-n">4.288</span>, -<span class="t-n">1.0</span>], [<span class="t-n">4.288</span>, -<span class="t-n">1.8</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"VBUS"</span>, [[<span class="t-n">2.475</span>, <span class="t-n">3.905</span>], [<span class="t-n">3.5</span>, <span class="t-n">3.905</span>], [<span class="t-n">3.5</span>, <span class="t-n">7.412</span>], [<span class="t-n">6.5</span>, <span class="t-n">7.412</span>], [<span class="t-n">9</span>, <span class="t-n">7.412</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">top</span>(<span class="t-s">"VBUS"</span>, [[<span class="t-n">0.95</span>, <span class="t-n">6.5</span>], [<span class="t-n">3.5</span>, <span class="t-n">6.5</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">top</span>(<span class="t-s">"GND"</span>, [[-<span class="t-n">0.95</span>, <span class="t-n">6.5</span>], [-<span class="t-n">3.5</span>, <span class="t-n">6.5</span>], [-<span class="t-n">3.5</span>, <span class="t-n">3.905</span>], [-<span class="t-n">2.475</span>, <span class="t-n">3.905</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">top</span>(<span class="t-s">"VBUS"</span>, [[<span class="t-n">1.52</span>, -<span class="t-n">5.42</span>], [<span class="t-n">1.52</span>, -<span class="t-n">3.0</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">top</span>(<span class="t-s">"VBUS"</span>, [[-<span class="t-n">1.52</span>, -<span class="t-n">5.42</span>], [-<span class="t-n">1.52</span>, -<span class="t-n">3.0</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">bottom</span>(<span class="t-s">"VBUS"</span>, [[-<span class="t-n">4.5</span>, -<span class="t-n">3.0</span>], [-<span class="t-n">1.52</span>, -<span class="t-n">3.0</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">bottom</span>(<span class="t-s">"VBUS"</span>, [[-<span class="t-n">1.52</span>, -<span class="t-n">3.0</span>], [<span class="t-n">1.52</span>, -<span class="t-n">3.0</span>], [<span class="t-n">9</span>, -<span class="t-n">3.0</span>], [<span class="t-n">9</span>, <span class="t-n">7.412</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">bottom</span>(<span class="t-s">"VBUS"</span>, [[-<span class="t-n">4.5</span>, -<span class="t-n">3.0</span>], [-<span class="t-n">4.5</span>, <span class="t-n">0.095</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">top</span>(<span class="t-s">"VBUS"</span>, [[-<span class="t-n">4.5</span>, <span class="t-n">0.095</span>], [-<span class="t-n">2.475</span>, <span class="t-n">0.095</span>]], <span class="t-n">0.4</span>);
+  <span class="t-f">top</span>(<span class="t-s">"OUT"</span>, [[-<span class="t-n">2.475</span>, <span class="t-n">1.365</span>], [-<span class="t-n">6.088</span>, <span class="t-n">1.365</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"LED_A"</span>, [[-<span class="t-n">7.912</span>, <span class="t-n">1.365</span>], [-<span class="t-n">10.062</span>, <span class="t-n">1.365</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"CC1"</span>, [[-<span class="t-n">0.5</span>, -<span class="t-n">5.42</span>], [-<span class="t-n">0.5</span>, -<span class="t-n">4.3</span>]]);
+  <span class="t-f">bottom</span>(<span class="t-s">"CC1"</span>, [[-<span class="t-n">0.5</span>, -<span class="t-n">4.3</span>], [-<span class="t-n">7.5</span>, -<span class="t-n">4.3</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"CC1"</span>, [[-<span class="t-n">7.5</span>, -<span class="t-n">4.3</span>], [-<span class="t-n">7.5</span>, -<span class="t-n">6</span>], [-<span class="t-n">9.088</span>, -<span class="t-n">6</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"CC2"</span>, [[<span class="t-n">0.5</span>, -<span class="t-n">5.42</span>], [<span class="t-n">0.5</span>, -<span class="t-n">4.3</span>]]);
+  <span class="t-f">bottom</span>(<span class="t-s">"CC2"</span>, [[<span class="t-n">0.5</span>, -<span class="t-n">4.3</span>], [<span class="t-n">7.5</span>, -<span class="t-n">4.3</span>]]);
+  <span class="t-f">top</span>(<span class="t-s">"CC2"</span>, [[<span class="t-n">7.5</span>, -<span class="t-n">4.3</span>], [<span class="t-n">7.5</span>, -<span class="t-n">6</span>], [<span class="t-n">9.088</span>, -<span class="t-n">6</span>]]);
+  <span class="t-k">for</span> (<span class="t-k">const</span> [net, at] <span class="t-k">of</span> [
+    [<span class="t-s">"THR"</span>, [-<span class="t-n">4.3</span>, <span class="t-n">2.635</span>]], [<span class="t-s">"THR"</span>, [<span class="t-n">4.3</span>, <span class="t-n">1.365</span>]], [<span class="t-s">"VBUS"</span>, [<span class="t-n">9</span>, <span class="t-n">7.412</span>]], [<span class="t-s">"VBUS"</span>, [<span class="t-n">1.52</span>, -<span class="t-n">3.0</span>]], [<span class="t-s">"VBUS"</span>, [-<span class="t-n">1.52</span>, -<span class="t-n">3.0</span>]],
+    [<span class="t-s">"VBUS"</span>, [-<span class="t-n">4.5</span>, <span class="t-n">0.095</span>]], [<span class="t-s">"CC1"</span>, [-<span class="t-n">0.5</span>, -<span class="t-n">4.3</span>]], [<span class="t-s">"CC1"</span>, [-<span class="t-n">7.5</span>, -<span class="t-n">4.3</span>]], [<span class="t-s">"CC2"</span>, [<span class="t-n">0.5</span>, -<span class="t-n">4.3</span>]], [<span class="t-s">"CC2"</span>, [<span class="t-n">7.5</span>, -<span class="t-n">4.3</span>]],
+    [<span class="t-s">"GND"</span>, [-<span class="t-n">13</span>, -<span class="t-n">9</span>]], [<span class="t-s">"GND"</span>, [<span class="t-n">13</span>, -<span class="t-n">9</span>]], [<span class="t-s">"GND"</span>, [-<span class="t-n">13</span>, <span class="t-n">9</span>]], [<span class="t-s">"GND"</span>, [<span class="t-n">13</span>, <span class="t-n">9</span>]], [<span class="t-s">"GND"</span>, [-<span class="t-n">3</span>, <span class="t-n">9.5</span>]],
+  ] <span class="t-k">as</span> [string, [number, number]][]) d.<span class="t-f">via</span>(net, at);
+  d.<span class="t-f">zone</span>(<span class="t-s">"GND"</span>, { layer: <span class="t-s">"F.Cu"</span> }).<span class="t-f">zone</span>(<span class="t-s">"GND"</span>, { layer: <span class="t-s">"B.Cu"</span> });
+  <span class="t-k">return</span> d;
+}
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) {
+  <span class="t-k">const</span> files = <span class="t-k">await</span> <span class="t-f">blinky</span>().<span class="t-f">write</span>(<span class="t-s">"out/blinky"</span>, { fill: <span class="t-k">true</span> });
+  <span class="t-k">for</span> (<span class="t-k">const</span> n <span class="t-k">of</span> files.notes) console.<span class="t-f">log</span>(<span class="t-s">"note:"</span>, n);
+  <span class="t-k">const</span> erc = <span class="t-k">await</span> pcb.<span class="t-f">erc</span>(files.schematic);
+  <span class="t-k">const</span> drc = <span class="t-k">await</span> pcb.<span class="t-f">drc</span>(files.board, { parity: <span class="t-k">true</span> });
+  <span class="t-k">for</span> (<span class="t-k">const</span> r <span class="t-k">of</span> [erc, drc]) {
+    console.<span class="t-f">log</span>(<span class="t-s">`${r.check.toUpperCase()} ${r.ok ? "passed" : "FAILED"}: ${r.errors} errors, ${r.warnings} warnings`</span>);
+    <span class="t-k">for</span> (<span class="t-k">const</span> f <span class="t-k">of</span> r.findings.<span class="t-f">filter</span>((f) =&gt; f.severity === <span class="t-s">"error"</span>)) console.<span class="t-f">log</span>(<span class="t-s">`  ${f.rule}: ${f.message} [${f.refs.join(", ")}]`</span>);
+  }
+  <span class="t-k">if</span> (process.argv.<span class="t-f">includes</span>(<span class="t-s">"--fab"</span>)) {
+    <span class="t-k">for</span> (<span class="t-k">const</span> f <span class="t-k">of</span> <span class="t-k">await</span> pcb.<span class="t-f">fabricate</span>(files.board, [<span class="t-s">"gerbers"</span>, <span class="t-s">"drill"</span>, <span class="t-s">"pos"</span>, <span class="t-s">"bom"</span>, <span class="t-s">"pdf"</span>], { out: <span class="t-s">"out/blinky-fab"</span> })) console.<span class="t-f">log</span>(<span class="t-s">"wrote"</span>, f);
+  }
+  <span class="t-c">// The board with its parts' 3D models, as a cad model in the viewer (and for an enclosure).</span>
+  <span class="t-k">const</span> stepFile = <span class="t-k">await</span> pcb.<span class="t-f">step</span>(files.board, { out: <span class="t-s">"out/blinky/blinky.step"</span> });
+  <span class="t-k">await</span> <span class="t-f">model</span>(<span class="t-s">"blinky_board"</span>, () =&gt; <span class="t-f">importStep</span>(stepFile))();
+  <span class="t-k">if</span> (!erc.ok || !drc.ok) process.exitCode = <span class="t-n">1</span>;
+}
+</code></pre><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/blinky_pcb.ts">Source of this page</a></p></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robots for simulation and motion planning · text-to-cad</title>
+<meta name="description" content="Generates and checks robot descriptions (URDF for ROS, MJCF for MuJoCo, SRDF for MoveIt) from a cad model with joints, and checks hand-written ones. Use to export a robot or mechanism for simulation or motion planning, or to validate a .urdf, .srdf or MJCF .xml. Not for the CAD part itself, which the cad skill makes, and it runs no simulation.">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="cad.html" aria-current="page">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="cad.html">CAD modeling and inspection</a></li><li><a href="fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="pcb.html">Circuit boards</a></li><li><a href="render.html">Renders for people</a></li><li class="current"><a href="robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="../docs/api.html">Server API (cad server)</a></li><li><a href="../docs/cli.html">cad command line</a></li><li><a href="../docs/index.html">Documentation</a></li><li><a href="../docs/install.html">Installing text-to-cad-rs</a></li><li><a href="../docs/ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="../docs/kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="../docs/kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="../docs/licenses.html">Licences</a></li><li><a href="../docs/quality-report.html">Workspace quality report</a></li><li><a href="../docs/robots.html">Robot descriptions</a></li><li><a href="../docs/security.html">Security and resource limits</a></li><li><a href="../docs/test-port.html">Porting the original test suite</a></li><li><a href="../docs/test-status.html">Test status</a></li></ul></div></aside><main><h1 id="robots-for-simulation-and-motion-planning"><a class="anchor" href="#robots-for-simulation-and-motion-planning" aria-hidden="true">#</a>Robots for simulation and motion planning</h1><p class="lede">Generates and checks robot descriptions (URDF for ROS, MJCF for MuJoCo, SRDF for MoveIt) from a cad model with joints, and checks hand-written ones. Use to export a robot or mechanism for simulation or motion planning, or to validate a .urdf, .srdf or MJCF .xml. Not for the CAD part itself, which the cad skill makes, and it runs no simulation.</p>
+<p>A robot is described for its consumers in XML: a URDF for its structure (ROS, RViz,
+robot_state_publisher), an SRDF beside it for MoveIt's planning semantics, and an MJCF for MuJoCo.
+With a cad model the model is the source of truth and the files are exports: regenerated, never
+edited. <code>docs/robots.md</code> in the repository is the full contract.</p>
+<h2 id="start-with-the-task"><a class="anchor" href="#start-with-the-task" aria-hidden="true">#</a>Start with the task</h2>
+<div class="table"><table><thead><tr><th>Task</th><th>Start with</th></tr></thead><tbody><tr><td>A URDF, MJCF or SRDF from a model</td><td>The model's joints, materials and poses, then <code>cad model export ID robot.urdf</code></td></tr><tr><td>Where the joints stop</td><td><code>cad model ranges ID</code>, then write the stops into the joints' <code>limits</code></td></tr><tr><td>Check a file (written by hand or exported)</td><td><code>cad urdf validate</code>, <code>cad srdf validate</code>, <code>cad mujoco check</code></td></tr><tr><td>See a joint move</td><td><code>cad model snapshot ID out.png --pose joint=value</code></td></tr></tbody></table></div>
+<h2 id="generate-from-the-model"><a class="anchor" href="#generate-from-the-model" aria-hidden="true">#</a>Generate from the model</h2>
+<p>The model says what is true of the machine (the cad skill covers joints, poses and couplings):</p>
+<div class="table"><table><thead><tr><th>In the model</th><th>Written as</th></tr></thead><tbody><tr><td><code>revolute</code>, <code>prismatic</code>, <code>fixed</code> joints in an <code>assembly</code></td><td>Links and joints (bodies with hinges and slides)</td></tr><tr><td><code>limits</code> on a joint</td><td><code>&lt;limit&gt;</code> / <code>range</code>, as offsets from the as-built pose, which is zero</td></tr><tr><td><code>couple(...)</code></td><td><code>&lt;mimic&gt;</code> / <code>&lt;equality&gt;&lt;joint polycoef&gt;</code></td></tr><tr><td><code>poses</code></td><td>MJCF <code>&lt;key&gt;</code>s and SRDF <code>&lt;group_state&gt;</code>s</td></tr><tr><td><code>material</code> on each part (density)</td><td>Exact <code>&lt;inertial&gt;</code>s: mass, centre of mass, tensor</td></tr><tr><td>colours</td><td><code>&lt;material&gt;</code> / <code>rgba</code></td></tr></tbody></table></div>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> run src/arm.ts                                   <span class="t-c"># prints the id</span>
+<span class="t-f">cad</span> model ranges <span class="t-s">"$ID"</span>                               <span class="t-c"># stops from the geometry</span>
+<span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$ID"</span> description/arm.urdf description/arm.srdf sim/arm.xml
+<span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$ID"</span> arm_description/urdf/arm.urdf --package arm_description   <span class="t-c"># package:// meshes for ROS</span></code></pre>
+<p>The suffix picks the format: <code>.urdf</code>, <code>.srdf</code>, <code>.xml</code> or <code>.mjcf</code> (MuJoCo). Meshes are written
+beside the file (<code>meshes/</code> for a URDF, <code>assets/</code> for an MJCF), one binary STL per part, in metres in
+its link's frame. An MJCF export also writes a <code>scene.xml</code> (the robot, a floor, a light) once,
+never over yours. Unchanged files are not rewritten.</p>
+<p>Each export prints what it wrote (<code>robot 'arm', root 'base_link', 5 links, 4 joints (3 movable),
+… total mass 1.2 kg</code>) and warns on stderr of what it could not know. Read both:</p>
+<ul><li><strong>A part with no material weighs nothing.</strong> A moving link without mass is refused by a<p>simulator: give every part a material and export again.</p></li><li><strong>Effort and velocity are written 0 unless the joint declares them</strong> (`revolute(&quot;elbow&quot;, { …,<p>effort: 2000, velocity: 180 })<code>: N·mm or N, deg/s or mm/s, written to URDF as N·m and rad/s and
+to MJCF as </code>actuatorfrcrange<code>). ROS controllers read 0 as none allowed; </code>cad urdf validate<code> warns
+</code>zero_effort<code>/</code>zero_velocity` for a joint without them.</p></li><li><strong>A slide without limits</strong> is written ± the model's extent: declare its stops.</li></ul>
+<p>What the export does:</p>
+<ul><li>Link frames keep the document's axes; a joint's child link frame sits on its axis origin as<p>built, so every <code>rpy</code> is 0 and each <code>&lt;axis&gt;</code> is the joint's declared direction.</p></li><li>The root link is <code>base</code> (the parts no joint moves), hung from an empty <code>base_link</code>.</li><li>Units are SI: metres, kilograms, radians. A snapshot's <code>--pose</code> takes degrees and mm.</li></ul>
+<p><strong>Never edit a generated file.</strong> A frame, limit, mass or mesh is changed in the model and
+exported again. A collision shape, damping or actuator for MuJoCo goes in your <code>scene.xml</code> or a
+file that includes the robot's.</p>
+<h2 id="check-each-change"><a class="anchor" href="#check-each-change" aria-hidden="true">#</a>Check each change</h2>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> urdf validate description/arm.urdf
+<span class="t-f">cad</span> urdf validate arm_description/urdf/arm.urdf --packages arm_description=arm_description
+<span class="t-f">cad</span> srdf validate description/arm.srdf --strict
+<span class="t-f">cad</span> mujoco check sim/scene.xml --json</code></pre>
+<p>Each prints one line per finding (<code>warning: zero_effort at /robot/joint[@name='yaw']/limit: …
+Hint: …</code>), then <code>OK file: summary</code> or <code>FAILED file: …</code>. Exit 0 passes; 1 fails (an error, or a
+warning with <code>--strict</code>); 2 is a refused command (no such file). <code>--json</code> prints the report as one
+object.</p>
+<ul><li><strong>URDF</strong>: one root, unique names, joints between links, types, axes, limits, mimics, one shape per<p>visual and collision, mesh files on disk, a positive mass and a positive semidefinite inertia are
+errors; an omitted or non-unit axis, missing or zero effort and velocity, limits a consumer
+ignores, a link and joint of one name, a moving link without an inertial, inertias breaking the
+triangle inequality, an unresolved <code>package://</code> mesh, unknown tags and undefined materials are
+warnings.</p></li><li><strong>SRDF</strong>: pairs with exactly one URDF of the same robot name in its folder; every group, chain,<p>state, end effector and disabled pair is checked against that URDF's names and limits.</p></li><li><strong>MJCF</strong>: names, meshes on disk (STL, OBJ or MSH), masses and inertias of moving bodies, ranges,<p>the angle unit and keyframe sizes; and MuJoCo's own compile where <code>python3 -c &quot;import mujoco&quot;</code>
+works (<code>mujoco_compiled</code>, else <code>mujoco_skipped</code> is printed).</p></li></ul>
+<p>Read the <code>OK</code> line as a check of its own: a wrong root, a count of movable joints that is off, or a
+total mass that is not the robot's is a fault no finding reports.</p>
+<p>A clean check is not proof. It cannot tell that an axis or a sign is the robot's: move each joint
+through its limits (<code>cad model snapshot ID j.png --pose shoulder=90</code>) and look. Report which checks
+ran, which were skipped (MuJoCo, ROS's <code>check_urdf</code>), and what you assumed.</p>
+<h2 id="author-by-hand"><a class="anchor" href="#author-by-hand" aria-hidden="true">#</a>Author by hand</h2>
+<p>For a robot with no cad model, or an SRDF beyond the generated one (end effectors, more groups):
+keep the units SI, copy every link and joint name from the URDF, put a comment at the top saying
+where each frame, axis, limit and mass came from, and run the checks above after every edit.</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/skills/robot-simulation/SKILL.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#start-with-the-task">Start with the task</a></li><li class="l2"><a href="#generate-from-the-model">Generate from the model</a></li><li class="l2"><a href="#check-each-change">Check each change</a></li><li class="l2"><a href="#author-by-hand">Author by hand</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

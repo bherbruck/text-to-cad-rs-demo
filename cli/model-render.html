@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cad model render · text-to-cad</title>
+<meta name="description" content="A path-traced picture (draft by default; --preset final for the finished look), or a turntable as a GIF or a PNG sequence">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="index.html" aria-current="page">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>CLI</h4><ul><li><a href="index.html">CLI reference</a></li><li><a href="cad.html">cad</a></li><li><a href="server.html">cad server</a></li><li><a href="server-start.html">cad server start</a></li><li><a href="server-status.html">cad server status</a></li><li><a href="server-stop.html">cad server stop</a></li><li><a href="init.html">cad init</a></li><li><a href="run.html">cad run</a></li><li><a href="model.html">cad model</a></li><li><a href="model-list.html">cad model list</a></li><li><a href="model-inspect.html">cad model inspect</a></li><li><a href="model-export.html">cad model export</a></li><li><a href="model-snapshot.html">cad model snapshot</a></li><li><a href="model-interference.html">cad model interference</a></li><li><a href="model-bom.html">cad model bom</a></li><li><a href="model-dfm.html">cad model dfm</a></li><li><a href="model-fea.html">cad model fea</a></li><li class="current"><a href="model-render.html">cad model render</a></li><li><a href="model-ranges.html">cad model ranges</a></li><li><a href="viewer.html">cad viewer</a></li><li><a href="step.html">cad step</a></li><li><a href="step-dfm.html">cad step dfm</a></li><li><a href="mcp.html">cad mcp</a></li><li><a href="pcb.html">cad pcb</a></li><li><a href="urdf.html">cad urdf</a></li><li><a href="urdf-validate.html">cad urdf validate</a></li><li><a href="srdf.html">cad srdf</a></li><li><a href="srdf-validate.html">cad srdf validate</a></li><li><a href="mujoco.html">cad mujoco</a></li><li><a href="mujoco-check.html">cad mujoco check</a></li></ul></div></aside><main><p class="crumbs"><a href="cad.html">cad</a> › <a href="model.html">cad model</a></p><h1 id="top"><code>cad model render</code></h1><p class="lede">A path-traced picture (draft by default; --preset final for the finished look), or a turntable as a GIF or a PNG sequence</p><pre class="code help" data-lang="text"><code>A path-traced picture (draft by default; --preset final for the finished look), or a turntable as a GIF or a PNG sequence
+
+Usage: cad model render [OPTIONS] &lt;ID&gt; &lt;OUT&gt;
+
+Arguments:
+  &lt;ID&gt;   
+  &lt;OUT&gt;  OUT.png, OUT.gif (with --turntable), or a folder / out_%03d.png for a PNG sequence
+
+Options:
+      --preset &lt;PRESET&gt;            draft (800×600, 16 samples) or final (1600×1200, 256 samples, 6 bounces)
+      --camera &lt;CAMERA&gt;            iso, front, back, left, right, top, bottom, AZ:EL in degrees, or x,y,z toward the camera
+      --size &lt;SIZE&gt;                WIDTHxHEIGHT
+      --samples &lt;SAMPLES&gt;          Paths per pixel
+      --bounces &lt;BOUNCES&gt;          Bounces per path
+      --lens &lt;LENS&gt;                Focal length, mm (50)
+      --fstop &lt;FSTOP&gt;              Depth of field: the f-number
+      --environment &lt;ENVIRONMENT&gt;  studio, sky, white or dark
+      --background &lt;BACKGROUND&gt;    environment, transparent, white, black or #rrggbb
+      --ground &lt;GROUND&gt;            shadow, plane or none
+      --pose &lt;POSE&gt;                A pose: a name, joint=value,... or JSON
+      --animation &lt;ANIMATION&gt;      An animation's name (with --time, or played over a --turntable with --animate)
+      --time &lt;TIME&gt;                Seconds into --animation
+      --part &lt;PART&gt;                Only this part (its path)
+      --seed &lt;SEED&gt;                Seed: the same options render the same image
+      --turntable                  Turn the camera about the model: a GIF (OUT.gif) or a PNG sequence
+      --frames &lt;FRAMES&gt;            Turntable frames (24)
+      --fps &lt;FPS&gt;                  Turntable frames per second of a GIF (12)
+      --degrees &lt;DEGREES&gt;          Turntable degrees (360)
+      --animate                    Play --animation over the turntable
+      --json &lt;OPTIONS&gt;             Every render option as JSON (docs/api.md &quot;Render&quot;); flags override it
+  -h, --help                       Print help</code></pre></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

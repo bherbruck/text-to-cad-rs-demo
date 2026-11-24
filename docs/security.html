@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security and resource limits · text-to-cad</title>
+
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="index.html" aria-current="page">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../skills/cad.html">CAD modeling and inspection</a></li><li><a href="../skills/fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../skills/pcb.html">Circuit boards</a></li><li><a href="../skills/render.html">Renders for people</a></li><li><a href="../skills/robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="api.html">Server API (cad server)</a></li><li><a href="cli.html">cad command line</a></li><li><a href="index.html">Documentation</a></li><li><a href="install.html">Installing text-to-cad-rs</a></li><li><a href="ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="licenses.html">Licences</a></li><li><a href="quality-report.html">Workspace quality report</a></li><li><a href="robots.html">Robot descriptions</a></li><li class="current"><a href="security.html">Security and resource limits</a></li><li><a href="test-port.html">Porting the original test suite</a></li><li><a href="test-status.html">Test status</a></li></ul></div></aside><main><h1 id="security-and-resource-limits"><a class="anchor" href="#security-and-resource-limits" aria-hidden="true">#</a>Security and resource limits</h1>
+<p><code>cad</code> runs a local server for one user. It builds models from scripts the user runs, opens files
+the user names, and writes files the user asks for. This page lists what the server defends
+against, how, and what it leaves to the operating system.</p>
+<h2 id="threat-model"><a class="anchor" href="#threat-model" aria-hidden="true">#</a>Threat model</h2>
+<p><strong>Trusted:</strong> the person at the keyboard. They run <code>cad</code>, hold the token, and every path they name
+is a file they mean to read or write. Writing an export to <code>/home/me/out.step</code> is the feature.</p>
+<p><strong>Untrusted:</strong></p>
+<ol><li><strong>Web pages in the user's browser.</strong> Any site can make the browser send requests to<p><code>127.0.0.1</code>. It must not be able to read documents, trigger builds, or write files.</p></li><li><strong>Other local users</strong> on a shared machine. They must not learn the token or read saved<p>documents.</p></li><li><strong>Model scripts and files from elsewhere</strong>: a downloaded <code>.ts</code>, STEP or STL file, or an IR<p>envelope. They must not crash the server, exhaust its memory or CPU without bound, or make it
+read or write files the user did not name.</p></li><li><strong>Clients that misbehave</strong>: huge bodies, many requests, disconnecting mid-build.</li></ol>
+<p><strong>Not in scope:</strong> an attacker who already runs code as the user (they can read <code>~/.cad</code> and
+<code>/proc</code>), bugs inside OCCT, gmsh or CalculiX on hostile input beyond what their own parsers
+reject, and network exposure. The server binds to loopback only and refuses to listen
+elsewhere.</p>
+<h2 id="web-pages-token-host-and-origin"><a class="anchor" href="#web-pages-token-host-and-origin" aria-hidden="true">#</a>Web pages: token, Host and Origin</h2>
+<ul><li><strong>Token.</strong> Every <code>/api</code> route except <code>/api/health</code> needs the 128-bit random token, as<p><code>Authorization: Bearer …</code> or <code>?token=</code> (the viewer page and its WebSocket). It is compared in
+constant time (<code>ct_eq</code>), so response timing reveals nothing about the right value. A page on
+another origin cannot read the token: it is only in <code>~/.cad/server.json</code> (0600) and the URLs
+<code>cad</code> prints.</p></li><li><strong>Host gate.</strong> Requests whose <code>Host</code> is not <code>127.0.0.1:PORT</code>, <code>localhost:PORT</code> or<p><code>[::1]:PORT</code> are refused with 403. This stops DNS rebinding, where <code>evil.example</code> re-resolves
+to 127.0.0.1 to read responses as same-origin.</p></li><li><strong>Origin gate.</strong> A request carrying an <code>Origin</code> header (every cross-site browser request and<p>every WebSocket upgrade) is refused unless that origin is a page on this machine (<code>127.0.0.1</code>,
+<code>localhost</code> or <code>[::1]</code>, any port, so the viewer's dev server works). A foreign page cannot
+make the server act, even with a guessed or leaked token.</p></li><li><strong>WebSocket</strong> (<code>/api/events</code>): behind the token, the Host gate and the Origin gate. It only<p>sends events (document id and version), never reads client data.</p></li></ul>
+<h2 id="files"><a class="anchor" href="#files" aria-hidden="true">#</a>Files</h2>
+<ul><li><strong>Paths in requests</strong> (export <code>files</code>, snapshot <code>out</code>, <code>/api/open</code> <code>path</code>) must be absolute,<p>at most 4096 bytes, with no NUL or line breaks. They name files the token holder chose.</p></li><li><strong>Writes are atomic</strong>: written to a temporary file in the same folder, then renamed over the<p>target. A symlink at the target is replaced, not written through. A failed write leaves the old
+file and no temporary file behind.</p></li><li><strong><code>/api/open</code> reads only STEP and STL</strong> (by suffix), at most 512 MB. The size is checked from<p>the file's metadata before it is read. The response is the parsed document (parts, bounds),
+never the file's bytes. A file that does not parse is an error that does not echo its contents.</p></li><li><strong>Static routes</strong>: the embedded viewer is served by exact name. <code>/wasm/NAME</code> accepts only plain<p>file names (<code>[A-Za-z0-9._-]</code>, not starting with a dot), so there is no traversal.</p></li><li><strong><code>~/.cad</code></strong> (or <code>$CAD_HOME</code>) is created 0700. <code>server.json</code> (the token), <code>server.log</code> (which<p>prints the viewer URL with the token) and the saved documents in <code>docs/</code> are created 0600. An
+existing folder is tightened to 0700 on start.</p></li><li><strong>Saved documents</strong> (<code>docs/&lt;id&gt;.cad</code>) are read back only if the id is a UUID, the kernel<p>matches, and the container parses. Every length field is bounds-checked; anything else is
+deleted with a log line.</p></li></ul>
+<h2 id="resource-limits"><a class="anchor" href="#resource-limits" aria-hidden="true">#</a>Resource limits</h2>
+<p>The SDK refuses the IR limits below first, at the user's line and in the same words. The
+engine enforces them again, for IR that reaches the server any other way. The SDK also caps
+selector nesting at 48 levels and argument nesting at 120.</p>
+<div class="table"><table><thead><tr><th>What</th><th>Limit</th><th>Where</th></tr></thead><tbody><tr><td>Request body</td><td>64 MB</td><td>server (<code>DefaultBodyLimit</code>), 413 above it</td></tr><tr><td>IR operations</td><td>200 000 nodes</td><td><code>ir::MAX_NODES</code></td></tr><tr><td>One node's arguments</td><td>1 MB of JSON</td><td><code>ir::MAX_ARGS_BYTES</code></td></tr><tr><td>Any number in an argument</td><td>±1e6 (1 km)</td><td><code>ir::MAX_VALUE</code>, so OCCT never sees absurd geometry</td></tr><tr><td>JSON nesting</td><td>128 levels</td><td>serde_json's recursion limit</td></tr><tr><td>Helix</td><td>10 000 turns</td><td><code>helix</code> op</td></tr><tr><td>Imported or opened file</td><td>512 MB</td><td><code>MAX_FILE_BYTES</code>, checked before reading</td></tr><tr><td>One part's mesh</td><td>20 M triangles</td><td><code>MAX_TRIANGLES</code>, refused with &quot;mesh it coarser&quot;</td></tr><tr><td>Export tolerance</td><td>≥ 1e-5 × the part's diagonal (and ≥ 0.001 mm)</td><td>export, so nothing meshes to billions of triangles</td></tr><tr><td>Snapshot</td><td>2048 × 2048 pixels (drawn at 2× each side)</td><td><code>render::MAX_PIXELS</code></td></tr><tr><td>Tessellation cache</td><td>512 meshes and 1 GB</td><td>weighted LRU</td></tr><tr><td>Node-value cache</td><td>2 000 values</td><td>LRU</td></tr><tr><td>Build time</td><td>600 s (<code>CAD_BUILD_TIMEOUT</code>)</td><td>per build, then stopped with that reason</td></tr><tr><td>FEA</td><td>one solve at a time; 900 s per tool run (<code>CAD_FEA_TIMEOUT</code>)</td><td>gmsh and ccx are killed past it</td></tr></tbody></table></div>
+<h2 id="cancellation"><a class="anchor" href="#cancellation" aria-hidden="true">#</a>Cancellation</h2>
+<p>A build carries a <code>cad_kernel::Cancel</code>. It is set when:</p>
+<ul><li>the build runs past its deadline;</li><li><strong>a newer build of the same document starts</strong> (the older one stops and records nothing;<p>its client gets <code>{&quot;ok&quot;: false, &quot;superseded&quot;: true}</code>);</p></li><li><strong>the client disconnects</strong> (axum drops the handler, and its guard sets the flag).</li></ul>
+<p>The engine checks the flag between operations. OCCT also stops inside long ones (booleans,
+splits, meshing, STEP import) through its own <code>CancelFlag</code>, which the adapter trips from the
+<code>Cancel</code>'s hook. Builds run on the blocking thread pool, so a long build never holds up the
+viewer's GETs, the WebSocket, or a build of another document. The tests check this
+(<code>crates/cad/tests/hardening.rs</code>).</p>
+<h2 id="parsers-fuzzed"><a class="anchor" href="#parsers-fuzzed" aria-hidden="true">#</a>Parsers, fuzzed</h2>
+<p><code>crates/cad-engine/tests/fuzz.rs</code> drives every parser and writer the engine owns with a
+fixed-seed xorshift generator (<code>CAD_FUZZ_ROUNDS=10</code> for a longer run). Nothing may panic or
+recurse without bound, and the same input always gives the same answer:</p>
+<ul><li>IR JSON (mutated envelopes; 100 000-deep nesting), and random graphs of real ops built on OCCT<p>with their mesh, snapshot and drawing;</p></li><li>the reference grammar (random strings; every label round-trips through <code>format_ref</code>);</li><li>STL, binary and ASCII (including a header that claims 4 billion triangles);</li><li><code>mesh.bin</code>, GLB and saved-document containers (mangled headers and length fields, every<p>truncation);</p></li><li>STEP canonicalisation (mutated files; a 200 000-deep chain of references), which is<p>iterative and does not exhaust the stack;</p></li><li>the SVG, PDF and 3MF writers with every awkward character, including XML-illegal control<p>characters, which are dropped. Each output is parsed back as XML.</p></li></ul>
+<p>Fixes the review made:</p>
+<ul><li>length arithmetic that could overflow on 32-bit (wasm) targets: STL, <code>mesh.bin</code>, saved<p>documents, GLB;</p></li><li>a GLB reader that sliced past its end;</li><li>recursive STEP hashing;</li><li>control characters in SVG and 3MF XML.</li></ul>
+<h2 id="owned-elsewhere"><a class="anchor" href="#owned-elsewhere" aria-hidden="true">#</a>Owned elsewhere</h2>
+<ul><li><strong>SDK selector strings</strong> are parsed in TypeScript (<code>packages/sdk</code>); the engine only sees the<p>JSON selector, which serde bounds.</p></li><li><strong>URDF, SRDF and MJCF readers</strong> (<code>crates/cad-robot</code>, roxmltree, which resolves no external<p>entities): done. <code>crates/cad-robot/tests/fuzz.rs</code> checks ~3,800 fixed-seed mutants under
+<code>catch_unwind</code> (no panics; the same bytes give the same report), and a file over 64 MB
+(<code>check::MAX_FILE</code>) is refused before it is read. An MJCF <code>&lt;include&gt;</code> loop stops at depth 8.</p></li><li><strong>Long tools</strong> (interference, ranges, DFM, render): done at the server. Each runs under a<p><code>cad_kernel::Cancel</code> (<code>with_cancel</code>), stopped past <code>CAD_TASK_TIMEOUT</code> seconds (600) or when the
+client goes away, and answers <code>503 &quot;&lt;tool&gt; stopped: …&quot;</code> rather than a result from interrupted
+steps (<code>crates/cad/tests/mechanisms.rs::long_tools_stop_at_the_task_deadline</code>). Render stops
+mid-image through its progress callback.</p></li><li><strong>Loop-level stops</strong>: <code>kinematics::ranges</code> checks the flag before every sample and bisection<p>step, <code>interference</code> before each part pair, and cad-fea's runner kills gmsh and ccx (engine);
+<code>cad model fea</code> runs through the same <code>tool()</code> deadline. <code>cad-dfm</code> checks the flag every 256
+ray samples and between parts and processes, and refuses with &quot;dfm stopped: …&quot; rather than
+reading a cancelled kernel call as a measurement (<code>crates/cad-dfm/tests/cancel.rs</code>).</p></li><li><strong>3MF import</strong> does not exist: we only write 3MF, so there is no zip-bomb surface.</li></ul><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/docs/security.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#threat-model">Threat model</a></li><li class="l2"><a href="#web-pages-token-host-and-origin">Web pages: token, Host and Origin</a></li><li class="l2"><a href="#files">Files</a></li><li class="l2"><a href="#resource-limits">Resource limits</a></li><li class="l2"><a href="#cancellation">Cancellation</a></li><li class="l2"><a href="#parsers-fuzzed">Parsers, fuzzed</a></li><li class="l2"><a href="#owned-elsewhere">Owned elsewhere</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

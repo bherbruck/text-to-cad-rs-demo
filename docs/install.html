@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Installing text-to-cad-rs · text-to-cad</title>
+
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="index.html" aria-current="page">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../skills/cad.html">CAD modeling and inspection</a></li><li><a href="../skills/fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../skills/pcb.html">Circuit boards</a></li><li><a href="../skills/render.html">Renders for people</a></li><li><a href="../skills/robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="api.html">Server API (cad server)</a></li><li><a href="cli.html">cad command line</a></li><li><a href="index.html">Documentation</a></li><li class="current"><a href="install.html">Installing text-to-cad-rs</a></li><li><a href="ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="licenses.html">Licences</a></li><li><a href="quality-report.html">Workspace quality report</a></li><li><a href="robots.html">Robot descriptions</a></li><li><a href="security.html">Security and resource limits</a></li><li><a href="test-port.html">Porting the original test suite</a></li><li><a href="test-status.html">Test status</a></li></ul></div></aside><main><h1 id="installing-text-to-cad-rs"><a class="anchor" href="#installing-text-to-cad-rs" aria-hidden="true">#</a>Installing text-to-cad-rs</h1>
+<p>One command installs <code>cad</code> and sets up the agent plugin in every agent app on the computer.</p>
+<p>macOS and Linux:</p>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">curl</span> -fsSL https://github.com/bherbruck/text-to-cad-rs/releases/latest/download/install.sh | sh</code></pre>
+<p>Windows, in PowerShell:</p>
+<pre class="code" data-lang="powershell"><button class="copy" type="button" aria-label="Copy">Copy</button><code>irm https://github.com/bherbruck/text-to-cad-rs/releases/latest/download/install.ps1 | iex</code></pre>
+<p><code>cad run</code> needs <a href="https://bun.sh" rel="noopener">bun</a> or Node 22.6+ on your PATH to run model scripts. FEA wants
+<code>gmsh</code> and CalculiX (<code>ccx</code>), circuit boards <code>kicad-cli</code>: each is found when it is used.</p>
+<h2 id="what-it-does"><a class="anchor" href="#what-it-does" aria-hidden="true">#</a>What it does</h2>
+<ol><li>Picks the archive for this machine from the release's <code>SHA256SUMS</code>: Linux x86_64 or aarch64,<p>macOS arm64 or x86_64, Windows x86_64 (<code>cad-&lt;version&gt;-&lt;target&gt;.tar.gz</code>, <code>.zip</code> on Windows).</p></li><li>Downloads it and checks its SHA-256 against <code>SHA256SUMS</code>; a mismatch stops it before anything is<p>installed.</p></li><li>Installs into <code>~/.cad</code> (or <code>--prefix</code>): <code>bin/cad</code> with the OCCT module beside it<p>(<code>libocct_capi.so</code>, <code>.dylib</code>, or <code>occt_capi.dll</code>, found next to the binary) and <code>bin/wasm/</code> (the
+browser engines the viewer's playground loads: OCCT and solidcore, about 7.8 MB and 8.9 MB
+compressed), the plugin into <code>plugin/</code>, licences into
+<code>share/</code>, and itself into <code>install/</code> for <code>--update</code> and <code>--uninstall</code>. <code>~/.cad</code> is also where
+<code>cad</code> keeps its server state and saved documents. The binary has OCCT (the default) and the
+solidcore kernel: <code>cad server start --kernel solidcore</code>.</p></li><li>Sets up the plugin in each agent app it finds, with that app's own mechanism (below). Every MCP<p>entry runs the installed <code>cad</code> by its full path, so it works before PATH is set.</p></li><li>Says what to add to PATH, or with <code>--modify-path</code> adds it: on macOS and Linux one marked block in<p>your shell's profile (<code>~/.zshrc</code>, <code>~/.bashrc</code>, <code>~/.bash_profile</code> on macOS, fish's
+<code>config.fish</code>, else <code>~/.profile</code>); on Windows your user PATH. Without the flag it changes nothing
+and prints the exact line.</p></li></ol>
+<p>It never overwrites an app's configuration that is not ours: a skill folder or a <code>cad</code> MCP server
+that is someone else's is left as it is, with a warning. A file it adds to is backed up beside itself
+first (<code>config.toml.bak.&lt;time&gt;</code>). Every change is recorded in <code>~/.cad/integrations</code>, which
+<code>--uninstall</code> undoes.</p>
+<h2 id="agent-apps"><a class="anchor" href="#agent-apps" aria-hidden="true">#</a>Agent apps</h2>
+<div class="table"><table><thead><tr><th>App</th><th>Found by</th><th>What it does</th></tr></thead><tbody><tr><td>Claude Code</td><td><code>claude</code> on PATH</td><td><code>claude plugin marketplace add ~/.cad/plugin</code> and <code>claude plugin install text-to-cad-rs@bherbruck</code>: the skills and the MCP server (<code>.mcp.json</code>)</td></tr><tr><td>Claude Code, without the <code>claude</code> command</td><td><code>~/.claude</code></td><td>copies each skill into <code>~/.claude/skills/&lt;name&gt;</code> and prints <code>claude mcp add cad -- ~/.cad/bin/cad mcp</code></td></tr><tr><td>Codex</td><td><code>~/.codex</code> or <code>codex</code></td><td>adds <code>[mcp_servers.cad]</code> to <code>~/.codex/config.toml</code> in a marked block; for the skills it prints <code>codex plugin marketplace add bherbruck/text-to-cad-rs</code> and <code>codex plugin add text-to-cad-rs@bherbruck</code></td></tr><tr><td>Cursor</td><td><code>~/.cursor</code></td><td>copies the plugin to <code>~/.cursor/plugins/local/text-to-cad-rs</code> and adds <code>mcpServers.cad</code> to <code>~/.cursor/mcp.json</code></td></tr><tr><td>Gemini CLI</td><td><code>~/.gemini</code> or <code>gemini</code></td><td>copies the extension (<code>gemini-extension.json</code>, with the MCP server, and the skills) to <code>~/.gemini/extensions/text-to-cad-rs</code></td></tr><tr><td>Grok, Antigravity, Devin, Factory Droid, Copilot CLI, Qwen Code, Pi, Muse, Kimi</td><td>their command</td><td>says it found them; install with the app's own plugin command, pointing it at this repository</td></tr></tbody></table></div>
+<p>Restart an app after its plugin is installed. Install the plugin once per app: two copies show every
+skill twice.</p>
+<h2 id="options"><a class="anchor" href="#options" aria-hidden="true">#</a>Options</h2>
+<div class="table"><table><thead><tr><th>Option (<code>install.sh</code> / <code>install.ps1</code>)</th><th>Does</th></tr></thead><tbody><tr><td><code>--version V</code> / <code>-Version V</code></td><td>That release instead of the latest</td></tr><tr><td><code>--prefix DIR</code> / <code>-Prefix DIR</code></td><td>Install into DIR (<code>CAD_PREFIX</code> too)</td></tr><tr><td><code>--release-url U</code> / <code>-ReleaseUrl U</code></td><td>A folder holding <code>SHA256SUMS</code> and the archives, <code>https://</code> or <code>file://</code> (<code>CAD_RELEASE_URL</code> too): a mirror, or a local build</td></tr><tr><td><code>--modify-path</code> / <code>-ModifyPath</code></td><td>Add <code>PREFIX/bin</code> to PATH</td></tr><tr><td><code>--no-apps</code> / <code>-NoApps</code></td><td>Leave agent apps alone</td></tr><tr><td><code>--update</code> / <code>-Update</code></td><td>Update an existing install: binary, engines, plugin, app entries</td></tr><tr><td><code>--uninstall</code> / <code>-Uninstall</code></td><td>Undo everything it recorded and remove what it installed; keeps <code>~/.cad</code>'s documents</td></tr><tr><td><code>--purge</code> / <code>-Purge</code></td><td>With <code>--uninstall</code>, also remove <code>~/.cad</code></td></tr><tr><td><code>--dry-run</code> / <code>-DryRun</code></td><td>Say what it would do; download and change nothing</td></tr></tbody></table></div>
+<p>To update or uninstall later, run the installed copy: <code>sh ~/.cad/install/install.sh --update</code>
+(PowerShell: <code>&amp; ~\.cad\install\install.ps1 -Update</code>).</p>
+<h2 id="from-a-local-build"><a class="anchor" href="#from-a-local-build" aria-hidden="true">#</a>From a local build</h2>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">scripts</span>/build.sh                                        <span class="t-c"># dist/cad-&lt;version&gt;-&lt;target&gt;.tar.gz + SHA256SUMS</span>
+<span class="t-f">sh</span> scripts/install/install.sh --release-url <span class="t-s">"file://$PWD/dist"</span></code></pre>
+<h2 id="by-hand"><a class="anchor" href="#by-hand" aria-hidden="true">#</a>By hand</h2>
+<p>Unpack the archive anywhere, keep <code>cad</code>, the OCCT module and <code>wasm/</code> together, and put that folder on
+PATH. Then point each agent app at the plugin: Claude Code
+<code>claude plugin marketplace add bherbruck/text-to-cad-rs</code> and
+<code>claude plugin install text-to-cad-rs@bherbruck</code>; any MCP client: a server named <code>cad</code> running
+<code>cad mcp</code>.</p>
+<h2 id="releases"><a class="anchor" href="#releases" aria-hidden="true">#</a>Releases</h2>
+<p><code>.github/workflows/release.yml</code> builds on a <code>v*</code> tag:</p>
+<ul><li>A <code>cad</code> archive for each of five targets. Each target is tested (<code>scripts/test.sh fast</code>; on Windows<p><code>cargo test</code>) and packaged by <code>scripts/build.sh</code>.</p></li><li>The browser engines (OCCT and solidcore; the experimental cadrs engine is not shipped), built once<p>and shared.</p></li><li>The static site, from the Linux build.</li></ul>
+<p>It then opens a <strong>draft</strong> release with the archives, <code>SHA256SUMS</code>, <code>install.sh</code> and <code>install.ps1</code>. A
+person publishes it.</p>
+<p>The OCCT module is built from source per target (8 minutes to an hour) and cached on the hash of
+<code>crates/occt-capi-sys/capi/</code>, so only a change there rebuilds it.</p>
+<h2 id="tests"><a class="anchor" href="#tests" aria-hidden="true">#</a>Tests</h2>
+<p><code>scripts/install/test.sh</code> runs without a network in a temporary HOME, against a fake release built
+from a stub <code>cad</code>. It checks seven things:</p>
+<ul><li>shellcheck passes.</li><li><code>--dry-run</code> changes nothing.</li><li>An install places every file and sets up every app.</li><li>A corrupted archive is refused.</li><li><code>--update</code> is idempotent.</li><li>Config that is not ours is left alone.</li><li><code>--uninstall</code> restores every config byte for byte, and <code>--purge</code> removes the prefix.</li></ul>
+<p>It also checks that <code>install.ps1</code> parses and dry-runs where <code>pwsh</code> is installed. CI's <code>installer</code>
+job runs it.</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/docs/install.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#what-it-does">What it does</a></li><li class="l2"><a href="#agent-apps">Agent apps</a></li><li class="l2"><a href="#options">Options</a></li><li class="l2"><a href="#from-a-local-build">From a local build</a></li><li class="l2"><a href="#by-hand">By hand</a></li><li class="l2"><a href="#releases">Releases</a></li><li class="l2"><a href="#tests">Tests</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

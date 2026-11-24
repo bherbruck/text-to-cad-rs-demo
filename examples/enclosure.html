@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>enclosure · text-to-cad</title>
+<meta name="description" content="A two-part enclosure: a shelled base with screw bosses and a lid with a locating lip, each its own model (to print or export alone) and together as an assembly. Run: cad run examples/enclosure.ts">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="index.html" aria-current="page">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Examples</h4><ul><li><a href="index.html">All examples</a></li><li><a href="arm.html">arm</a></li><li><a href="blinky_pcb.html">blinky_pcb</a></li><li><a href="bracket.html">bracket</a></li><li class="current"><a href="enclosure.html">enclosure</a></li><li><a href="esp32_pcb.html">esp32_pcb</a></li><li><a href="fasteners.html">fasteners</a></li><li><a href="gear.html">gear</a></li><li><a href="gear_train.html">gear_train</a></li><li><a href="hinge_box.html">hinge_box</a></li><li><a href="knob.html">knob</a></li><li><a href="plate.html">plate</a></li><li><a href="spring.html">spring</a></li></ul></div><div class="group"><h4>Gallery</h4><ul><li><a href="../gallery/index.html">Prompts → models</a></li><li><a href="dogfood-01-nema17-mount.html">01-nema17-mount</a></li><li><a href="dogfood-02-pipe-tee.html">02-pipe-tee</a></li><li><a href="dogfood-03-phone-stand.html">03-phone-stand</a></li><li><a href="dogfood-04-desk-tray.html">04-desk-tray</a></li><li><a href="dogfood-05-sprocket.html">05-sprocket</a></li><li><a href="dogfood-06-living-hinge-box.html">06-living-hinge-box</a></li><li><a href="dogfood-07-sheet-bracket.html">07-sheet-bracket</a></li><li><a href="dogfood-08-gripper.html">08-gripper</a></li><li><a href="dogfood-09-bme280-breakout.html">09-bme280-breakout</a></li><li><a href="dogfood-10-printed-bolt.html">10-printed-bolt</a></li></ul></div></aside><main><h1 id="top">enclosure</h1><p class="lede">A two-part enclosure: a shelled base with screw bosses and a lid with a locating lip, each its own model (to print or export alone) and together as an assembly. Run: cad run examples/enclosure.ts</p><div class="actions"><a class="button primary" href="../play/index.html#code=Ly8gQSB0d28tcGFydCBlbmNsb3N1cmU6IGEgc2hlbGxlZCBiYXNlIHdpdGggc2NyZXcgYm9zc2VzIGFuZCBhIGxpZCB3aXRoIGEgbG9jYXRpbmcgbGlwLCBlYWNoIGl0cwovLyBvd24gbW9kZWwgKHRvIHByaW50IG9yIGV4cG9ydCBhbG9uZSkgYW5kIHRvZ2V0aGVyIGFzIGFuIGFzc2VtYmx5LgovLyBSdW46IGNhZCBydW4gZXhhbXBsZXMvZW5jbG9zdXJlLnRzCmltcG9ydCB7IGFzc2VtYmx5LCBib3gsIGN5bGluZGVyLCBtb2RlbCwgcGFyYW0gfSBmcm9tICJAY2FkL3NkayI7Cgpjb25zdCBXID0gOTAsIEQgPSA2MCwgSCA9IDMyOyAgICAgICAgIC8vIG91dHNpZGUgc2l6ZSBvZiB0aGUgYmFzZQpjb25zdCBMSUQgPSAzOyAgICAgICAgICAgICAgICAgICAgICAgICAvLyBsaWQgcGxhdGUgdGhpY2tuZXNzCmNvbnN0IFIgPSA1OyAgICAgICAgICAgICAgICAgICAgICAgICAgIC8vIG91dHNpZGUgY29ybmVyIHJhZGl1cwpjb25zdCBCT1NTX0lOU0VUID0gNzsgICAgICAgICAgICAgICAgICAvLyBib3NzIGNlbnRyZSBmcm9tIHRoZSBvdXRzaWRlIHdhbGxzCgpmdW5jdGlvbiBiYXNlKHdhbGw6IG51bWJlcikgewogIGNvbnN0IG91dGVyID0gYm94KFcsIEQsIEgsIHsgYWxpZ246IFsiY2VudGVyIiwgImNlbnRlciIsICJtaW4iXSB9KS5maWxsZXQoInxaIiwgUik7CiAgY29uc3Qgc2hlbGwgPSBvdXRlci5zaGVsbCgiPloiLCAtd2FsbCk7ICAgICAgICAgICAgICAgICAgICAgICAgIC8vIG9wZW4gdG9wLCB3YWxscyBncm93IGlud2FyZAogIGNvbnN0IGJvc3MgPSBjeWxpbmRlcigzLjUsIEggLSB3YWxsLCB7IGFsaWduOiBbImNlbnRlciIsICJjZW50ZXIiLCAibWluIl0gfSkudHJhbnNsYXRlKDAsIDAsIHdhbGwpOwogIGNvbnN0IHBpbG90ID0gY3lsaW5kZXIoMS4yNSwgSCwgeyBhbGlnbjogWyJjZW50ZXIiLCAiY2VudGVyIiwgIm1pbiJdIH0pLnRyYW5zbGF0ZSgwLCAwLCB3YWxsICsgMik7CiAgY29uc3Qgc3ggPSBXIC0gMiAqIEJPU1NfSU5TRVQsIHN5ID0gRCAtIDIgKiBCT1NTX0lOU0VUOwogIHJldHVybiBzaGVsbAogICAgLmZ1c2UoYm9zcy5ncmlkQ29waWVzKDIsIDIsIHN4LCBzeSkpCiAgICAuY3V0KHBpbG90LmdyaWRDb3BpZXMoMiwgMiwgc3gsIHN5KSk7Cn0KCmZ1bmN0aW9uIGxpZCh3YWxsOiBudW1iZXIsIGNsZWFyYW5jZTogbnVtYmVyKSB7CiAgY29uc3QgcGxhdGUgPSBib3goVywgRCwgTElELCB7IGFsaWduOiBbImNlbnRlciIsICJjZW50ZXIiLCAibWluIl0gfSkuZmlsbGV0KCJ8WiIsIFIpOwogIGNvbnN0IGxpcFcgPSBXIC0gMiAqIHdhbGwgLSAyICogY2xlYXJhbmNlLCBsaXBEID0gRCAtIDIgKiB3YWxsIC0gMiAqIGNsZWFyYW5jZTsKICBjb25zdCBsaXAgPSBib3gobGlwVywgbGlwRCwgNCwgeyBhbGlnbjogWyJjZW50ZXIiLCAiY2VudGVyIiwgIm1heCJdIH0pCiAgICAuZmlsbGV0KCJ8WiIsIFIgLSB3YWxsKQogICAgLnNoZWxsKCI8WiIsIC0xLjYpOwogIGNvbnN0IHNjcmV3ID0gY3lsaW5kZXIoMS43LCAyMCkuZ3JpZENvcGllcygyLCAyLCBXIC0gMiAqIEJPU1NfSU5TRVQsIEQgLSAyICogQk9TU19JTlNFVCk7CiAgLy8gdGhlIGxpcCBzdG9wcyBzaG9ydCBvZiBlYWNoIGNvcm5lcidzIGJvc3M6IGEgc3F1YXJlIG5vdGNoLCBzbyBubyBzbGl2ZXIgb2YgbGlwIGlzIGxlZnQKICAvLyBiZXR3ZWVuIHRoZSBib3NzJ3MgY2xlYXJhbmNlIGFuZCB0aGUgd2FsbCAoYSAwLjYgbW0gc2xpdmVyIGZhaWxzIGEgcHJpbnRpbmcgY2hlY2spCiAgY29uc3Qgbm90Y2ggPSAyICogKEJPU1NfSU5TRVQgKyA0LjUpOwogIGNvbnN0IGJvc3NDbGVhciA9IGJveChub3RjaCwgbm90Y2gsIDEwLCB7IGFsaWduOiBbImNlbnRlciIsICJjZW50ZXIiLCAibWF4Il0gfSkuZ3JpZENvcGllcygyLCAyLCBXIC0gMiAqIEJPU1NfSU5TRVQsIEQgLSAyICogQk9TU19JTlNFVCk7CiAgcmV0dXJuIHBsYXRlLmZ1c2UobGlwKS5jdXQoc2NyZXcsIGJvc3NDbGVhcikuY2hhbWZlcigiPloiLCAwLjgpOwp9Cgpjb25zdCB3YWxsUGFyYW0gPSAoKSA9PiBwYXJhbSgid2FsbCIsIDIsIHsgbWluOiAxLjIsIG1heDogNCwgc3RlcDogMC4yLCB1bml0OiAibW0iIH0pOwoKZXhwb3J0IGNvbnN0IGVuY2xvc3VyZUJhc2UgPSBtb2RlbCgiZW5jbG9zdXJlX2Jhc2UiLCAoKSA9PgogIGJhc2Uod2FsbFBhcmFtKCkpLmxhYmVsKCJiYXNlIiwgeyBjb2xvcjogIiM2YjhhYTgiLCBtYXRlcmlhbDogInBldGciIH0pKTsKCmV4cG9ydCBjb25zdCBlbmNsb3N1cmVMaWQgPSBtb2RlbCgiZW5jbG9zdXJlX2xpZCIsICgpID0-CiAgbGlkKHdhbGxQYXJhbSgpLCBwYXJhbSgiY2xlYXJhbmNlIiwgMC4yLCB7IG1pbjogMCwgbWF4OiAxLCBzdGVwOiAwLjA1LCB1bml0OiAibW0iIH0pKQogICAgLmxhYmVsKCJsaWQiLCB7IGNvbG9yOiAiI2Q4ZGRlMyIsIG1hdGVyaWFsOiAicGV0ZyIgfSkpOwoKZXhwb3J0IGNvbnN0IGVuY2xvc3VyZSA9IG1vZGVsKCJlbmNsb3N1cmUiLCAoKSA9PiB7CiAgY29uc3Qgd2FsbCA9IHdhbGxQYXJhbSgpOwogIGNvbnN0IG9wZW4gPSBwYXJhbSgibGlkX2xpZnQiLCAxNSwgeyBtaW46IDAsIG1heDogNjAsIHVuaXQ6ICJtbSIsIGRlc2NyaXB0aW9uOiAiZXhwbG9kZWQgZ2FwIiB9KTsKICByZXR1cm4gYXNzZW1ibHkoImVuY2xvc3VyZSIsIFsKICAgIGJhc2Uod2FsbCkubGFiZWwoImJhc2UiLCB7IGNvbG9yOiAiIzZiOGFhOCIsIG1hdGVyaWFsOiAicGV0ZyIgfSksCiAgICBsaWQod2FsbCwgMC4yKS5sYWJlbCgibGlkIiwgeyBjb2xvcjogIiNkOGRkZTMiLCBtYXRlcmlhbDogInBldGciIH0pLnRyYW5zbGF0ZSgwLCAwLCBIICsgb3BlbiksCiAgXSk7Cn0pOwoKaWYgKGltcG9ydC5tZXRhLm1haW4pIHsKICBhd2FpdCBlbmNsb3N1cmVCYXNlKCk7CiAgYXdhaXQgZW5jbG9zdXJlTGlkKCk7CiAgYXdhaXQgZW5jbG9zdXJlKCk7Cn0K&name=enclosure">Open in playground</a><a class="button" href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/enclosure.ts">View on GitHub</a><a class="button" href="index.html">All examples</a></div><div class="figures"><figure><img src="../images/examples/enclosure-enclosure.png" alt="enclosure"><figcaption>enclosure</figcaption></figure><figure><img src="../images/examples/enclosure-enclosure_base.png" alt="enclosure_base"><figcaption>enclosure_base</figcaption></figure><figure><img src="../images/examples/enclosure-enclosure_lid.png" alt="enclosure_lid"><figcaption>enclosure_lid</figcaption></figure></div>
+<h2 id="source"><a class="anchor" href="#source" aria-hidden="true">#</a>Source</h2>
+<p>Run it with <code>cad run examples/enclosure.ts</code>.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// A two-part enclosure: a shelled base with screw bosses and a lid with a locating lip, each its</span>
+<span class="t-c">// own model (to print or export alone) and together as an assembly.</span>
+<span class="t-c">// Run: cad run examples/enclosure.ts</span>
+<span class="t-k">import</span> { assembly, box, cylinder, model, param } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">const</span> W = <span class="t-n">90</span>, D = <span class="t-n">60</span>, H = <span class="t-n">32</span>;         <span class="t-c">// outside size of the base</span>
+<span class="t-k">const</span> LID = <span class="t-n">3</span>;                         <span class="t-c">// lid plate thickness</span>
+<span class="t-k">const</span> R = <span class="t-n">5</span>;                           <span class="t-c">// outside corner radius</span>
+<span class="t-k">const</span> BOSS_INSET = <span class="t-n">7</span>;                  <span class="t-c">// boss centre from the outside walls</span>
+
+<span class="t-k">function</span> <span class="t-f">base</span>(wall: number) {
+  <span class="t-k">const</span> outer = <span class="t-f">box</span>(W, D, H, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"min"</span>] }).<span class="t-f">fillet</span>(<span class="t-s">"|Z"</span>, R);
+  <span class="t-k">const</span> shell = outer.<span class="t-f">shell</span>(<span class="t-s">"&gt;Z"</span>, -wall);                         <span class="t-c">// open top, walls grow inward</span>
+  <span class="t-k">const</span> boss = <span class="t-f">cylinder</span>(<span class="t-n">3.5</span>, H - wall, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"min"</span>] }).<span class="t-f">translate</span>(<span class="t-n">0</span>, <span class="t-n">0</span>, wall);
+  <span class="t-k">const</span> pilot = <span class="t-f">cylinder</span>(<span class="t-n">1.25</span>, H, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"min"</span>] }).<span class="t-f">translate</span>(<span class="t-n">0</span>, <span class="t-n">0</span>, wall + <span class="t-n">2</span>);
+  <span class="t-k">const</span> sx = W - <span class="t-n">2</span> * BOSS_INSET, sy = D - <span class="t-n">2</span> * BOSS_INSET;
+  <span class="t-k">return</span> shell
+    .<span class="t-f">fuse</span>(boss.<span class="t-f">gridCopies</span>(<span class="t-n">2</span>, <span class="t-n">2</span>, sx, sy))
+    .<span class="t-f">cut</span>(pilot.<span class="t-f">gridCopies</span>(<span class="t-n">2</span>, <span class="t-n">2</span>, sx, sy));
+}
+
+<span class="t-k">function</span> <span class="t-f">lid</span>(wall: number, clearance: number) {
+  <span class="t-k">const</span> plate = <span class="t-f">box</span>(W, D, LID, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"min"</span>] }).<span class="t-f">fillet</span>(<span class="t-s">"|Z"</span>, R);
+  <span class="t-k">const</span> lipW = W - <span class="t-n">2</span> * wall - <span class="t-n">2</span> * clearance, lipD = D - <span class="t-n">2</span> * wall - <span class="t-n">2</span> * clearance;
+  <span class="t-k">const</span> lip = <span class="t-f">box</span>(lipW, lipD, <span class="t-n">4</span>, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"max"</span>] })
+    .<span class="t-f">fillet</span>(<span class="t-s">"|Z"</span>, R - wall)
+    .<span class="t-f">shell</span>(<span class="t-s">"&lt;Z"</span>, -<span class="t-n">1.6</span>);
+  <span class="t-k">const</span> screw = <span class="t-f">cylinder</span>(<span class="t-n">1.7</span>, <span class="t-n">20</span>).<span class="t-f">gridCopies</span>(<span class="t-n">2</span>, <span class="t-n">2</span>, W - <span class="t-n">2</span> * BOSS_INSET, D - <span class="t-n">2</span> * BOSS_INSET);
+  <span class="t-c">// the lip stops short of each corner's boss: a square notch, so no sliver of lip is left</span>
+  <span class="t-c">// between the boss's clearance and the wall (a 0.6 mm sliver fails a printing check)</span>
+  <span class="t-k">const</span> notch = <span class="t-n">2</span> * (BOSS_INSET + <span class="t-n">4.5</span>);
+  <span class="t-k">const</span> bossClear = <span class="t-f">box</span>(notch, notch, <span class="t-n">10</span>, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"max"</span>] }).<span class="t-f">gridCopies</span>(<span class="t-n">2</span>, <span class="t-n">2</span>, W - <span class="t-n">2</span> * BOSS_INSET, D - <span class="t-n">2</span> * BOSS_INSET);
+  <span class="t-k">return</span> plate.<span class="t-f">fuse</span>(lip).<span class="t-f">cut</span>(screw, bossClear).<span class="t-f">chamfer</span>(<span class="t-s">"&gt;Z"</span>, <span class="t-n">0.8</span>);
+}
+
+<span class="t-k">const</span> wallParam = () =&gt; <span class="t-f">param</span>(<span class="t-s">"wall"</span>, <span class="t-n">2</span>, { min: <span class="t-n">1.2</span>, max: <span class="t-n">4</span>, step: <span class="t-n">0.2</span>, unit: <span class="t-s">"mm"</span> });
+
+<span class="t-k">export</span> <span class="t-k">const</span> enclosureBase = <span class="t-f">model</span>(<span class="t-s">"enclosure_base"</span>, () =&gt;
+  <span class="t-f">base</span>(<span class="t-f">wallParam</span>()).<span class="t-f">label</span>(<span class="t-s">"base"</span>, { color: <span class="t-s">"#6b8aa8"</span>, material: <span class="t-s">"petg"</span> }));
+
+<span class="t-k">export</span> <span class="t-k">const</span> enclosureLid = <span class="t-f">model</span>(<span class="t-s">"enclosure_lid"</span>, () =&gt;
+  <span class="t-f">lid</span>(<span class="t-f">wallParam</span>(), <span class="t-f">param</span>(<span class="t-s">"clearance"</span>, <span class="t-n">0.2</span>, { min: <span class="t-n">0</span>, max: <span class="t-n">1</span>, step: <span class="t-n">0.05</span>, unit: <span class="t-s">"mm"</span> }))
+    .<span class="t-f">label</span>(<span class="t-s">"lid"</span>, { color: <span class="t-s">"#d8dde3"</span>, material: <span class="t-s">"petg"</span> }));
+
+<span class="t-k">export</span> <span class="t-k">const</span> enclosure = <span class="t-f">model</span>(<span class="t-s">"enclosure"</span>, () =&gt; {
+  <span class="t-k">const</span> wall = <span class="t-f">wallParam</span>();
+  <span class="t-k">const</span> open = <span class="t-f">param</span>(<span class="t-s">"lid_lift"</span>, <span class="t-n">15</span>, { min: <span class="t-n">0</span>, max: <span class="t-n">60</span>, unit: <span class="t-s">"mm"</span>, description: <span class="t-s">"exploded gap"</span> });
+  <span class="t-k">return</span> <span class="t-f">assembly</span>(<span class="t-s">"enclosure"</span>, [
+    <span class="t-f">base</span>(wall).<span class="t-f">label</span>(<span class="t-s">"base"</span>, { color: <span class="t-s">"#6b8aa8"</span>, material: <span class="t-s">"petg"</span> }),
+    <span class="t-f">lid</span>(wall, <span class="t-n">0.2</span>).<span class="t-f">label</span>(<span class="t-s">"lid"</span>, { color: <span class="t-s">"#d8dde3"</span>, material: <span class="t-s">"petg"</span> }).<span class="t-f">translate</span>(<span class="t-n">0</span>, <span class="t-n">0</span>, H + open),
+  ]);
+});
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) {
+  <span class="t-k">await</span> <span class="t-f">enclosureBase</span>();
+  <span class="t-k">await</span> <span class="t-f">enclosureLid</span>();
+  <span class="t-k">await</span> <span class="t-f">enclosure</span>();
+}
+</code></pre><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/enclosure.ts">Source of this page</a></p></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

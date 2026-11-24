@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workspace quality report · text-to-cad</title>
+
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="index.html" aria-current="page">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../skills/cad.html">CAD modeling and inspection</a></li><li><a href="../skills/fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../skills/pcb.html">Circuit boards</a></li><li><a href="../skills/render.html">Renders for people</a></li><li><a href="../skills/robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="api.html">Server API (cad server)</a></li><li><a href="cli.html">cad command line</a></li><li><a href="index.html">Documentation</a></li><li><a href="install.html">Installing text-to-cad-rs</a></li><li><a href="ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="licenses.html">Licences</a></li><li class="current"><a href="quality-report.html">Workspace quality report</a></li><li><a href="robots.html">Robot descriptions</a></li><li><a href="security.html">Security and resource limits</a></li><li><a href="test-port.html">Porting the original test suite</a></li><li><a href="test-status.html">Test status</a></li></ul></div></aside><main><h1 id="workspace-quality-report"><a class="anchor" href="#workspace-quality-report" aria-hidden="true">#</a>Workspace quality report</h1>
+<p>The checks: <code>cargo clippy --all-targets</code> per crate (<code>all = &quot;warn&quot;</code> from the workspace lints);
+<code>missing_docs</code> (<code>cargo clippy -p X -- -W missing_docs</code>) and <code>cargo doc --no-deps</code> warnings; Cargo
+dependencies that no source, test, example or build script names; <code>#[allow]</code> without a reason
+comment; and <code>cargo fmt --check</code> against the new root <code>rustfmt.toml</code> (edition 2024,
+<code>max_width = 110</code>). The vendored <code>occt-*</code> crates are out of scope. No <code>clippy.toml</code> is needed.</p>
+<p>Each owner fixes their own crates. Others are still editing them, so nothing here has been
+changed. Counts are as of this report.</p>
+<h2 id="clean-fixed-by-engine"><a class="anchor" href="#clean-fixed-by-engine" aria-hidden="true">#</a>Clean (fixed by engine)</h2>
+<p><code>cad-kernel</code>, <code>cad-kernel-occt</code>, <code>cad-engine</code>, <code>cad-fea</code>: 0 clippy warnings across all targets,
+0 <code>missing_docs</code>, 0 doc warnings, no unused dependencies (<code>thiserror</code> removed from cad-fea).
+Every <code>#[allow]</code> carries its reason. <code>cargo fmt --check</code> is clean for the first three; in
+cad-engine only other owners' files differ (listed below). Changes:</p>
+<ul><li>clippy: indexed loop in <code>Bounds::add_point</code>; <code>std::slice::from_ref</code>; <code>as_chunks</code> for<p><code>chunks_exact(N)</code>, including in <code>cad-engine/tests/ported_mesh.rs</code>.</p></li><li>The <code>from_native</code> / <code>from_mesh</code> naming lint is allowed with a reason: the kernel instance makes<p>the body, so these cannot be constructors.</p></li><li>The <code>use occt::Assembly as _Unused</code> / <code>#[allow(unused_imports)]</code> hack is removed from<p>cad-kernel-occt.</p></li><li>The engine's own files are formatted.</li></ul>
+<h2 id="test-port-cad-cad-robot-and-the-ported-tests-in-cad-engine-done"><a class="anchor" href="#test-port-cad-cad-robot-and-the-ported-tests-in-cad-engine-done" aria-hidden="true">#</a>test-port: <code>cad</code>, <code>cad-robot</code>, and the ported tests in cad-engine (done)</h2>
+<ul><li>clippy is clean.</li><li>main.rs:1055 was not a bug (the branch picked only the folder to create); it is rewritten plainly.</li><li><code>[::1]</code> is in backticks, and build.rs has a crate doc.</li><li>Every allow has a reason.</li><li><code>futures-util</code> is removed.</li><li>cad-robot documents all public items under <code>#![warn(missing_docs)]</code>.</li><li>fmt is clean, including <code>tests/ported_*</code>. cad, cad-robot and cad-engine are in the CI <code>lint</code> job.</li></ul>
+<h2 id="sdk-cad-dfm-done"><a class="anchor" href="#sdk-cad-dfm-done" aria-hidden="true">#</a>sdk: <code>cad-dfm</code> (done)</h2>
+<ul><li>The crate-wide allow is gone. Each lint is fixed or allowed on its one item with a reason.</li><li>The unused <code>Kind::Bool</code> is deleted.</li><li>The <code>geom::v</code> functions are documented.</li><li>fmt is clean. 0 clippy and 0 doc warnings. Added to the CI <code>lint</code> job.</li></ul>
+<h2 id="solidcore-adapter-cad-kernel-solidcore-cad-kernel-cadrs-cad-kernel-conformance-cad-pcb-done"><a class="anchor" href="#solidcore-adapter-cad-kernel-solidcore-cad-kernel-cadrs-cad-kernel-conformance-cad-pcb-done" aria-hidden="true">#</a>solidcore-adapter: <code>cad-kernel-solidcore</code>, <code>cad-kernel-cadrs</code>, <code>cad-kernel-conformance</code>, <code>cad-pcb</code> (done)</h2>
+<ul><li>clippy is clean, with the solidcore and cadrs features on.</li><li>fmt is clean.</li><li>rustdoc runs clean under <code>-D warnings</code>, and all four crates have <code>#![warn(missing_docs)]</code>.</li><li>Every allow has a reason, and the crates follow <code>[lints] workspace = true</code>.</li><li>cadrs tells cargo-machete to ignore <code>uuid</code>.</li><li>All four are in the CI <code>lint</code> job.</li></ul>
+<h2 id="wasm-cad-wasm-cad-render-and-kinematicsrs-animationrs-in-cad-engine-done"><a class="anchor" href="#wasm-cad-wasm-cad-render-and-kinematicsrs-animationrs-in-cad-engine-done" aria-hidden="true">#</a>wasm: <code>cad-wasm</code>, <code>cad-render</code>, and <code>kinematics.rs</code> / <code>animation.rs</code> in cad-engine (done)</h2>
+<ul><li>fmt is clean everywhere, including their cad-engine files.</li><li>The allow now has a reason.</li><li>cad-render documents all public items under <code>#![warn(missing_docs)]</code>, and its clippy is clean.</li><li>cad-render (clippy and fmt) and cad-wasm (fmt) are in the CI <code>lint</code> job.</li></ul>
+<h2 id="ci"><a class="anchor" href="#ci" aria-hidden="true">#</a>CI</h2>
+<p>Added to <code>.github/workflows/ci.yml</code>: a <code>lint</code> job that passes today. It runs clippy on the
+crates that are clean (now including cad-dfm) and fails on any warning in them, plus <code>cargo fmt --check</code> on the clean
+crates. It does not use <code>-D warnings</code>, because that would also deny the vendored <code>occt-*</code> crates,
+which are workspace members (occt-kernel-capi has 3 <code>chunks_exact</code> lints):</p>
+<pre class="code" data-lang="yaml"><button class="copy" type="button" aria-label="Copy">Copy</button><code>- run: |
+    cargo clippy -p cad-kernel -p cad-kernel-occt -p cad-engine -p cad-fea --all-targets --message-format short 2&gt;&amp;1 | tee clippy.txt
+    ! grep -E '^crates/(cad-kernel|cad-kernel-occt|cad-engine|cad-fea)/.*(warning|error)' clippy.txt
+- run: cargo fmt --check -p cad-kernel -p cad-kernel-occt -p cad-fea</code></pre>
+<p>Status: every crate except the vendored <code>occt-*</code> is now in the <code>lint</code> job (clippy and fmt).
+Proposed next: add <code>RUSTDOCFLAGS=&quot;-D warnings&quot; cargo doc --no-deps</code> for the same crates. Every
+owner reports it clean; check it on CI before making it required. <code>cargo machete</code> is not
+installed on this box; the unused-dependency check here was a script over each crate's
+Cargo.toml and sources.</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/docs/quality-report.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#clean-fixed-by-engine">Clean (fixed by engine)</a></li><li class="l2"><a href="#test-port-cad-cad-robot-and-the-ported-tests-in-cad-engine-done">test-port: cad, cad-robot, and the ported tests in cad-engine (done)</a></li><li class="l2"><a href="#sdk-cad-dfm-done">sdk: cad-dfm (done)</a></li><li class="l2"><a href="#solidcore-adapter-cad-kernel-solidcore-cad-kernel-cadrs-cad-kernel-conformance-cad-pcb-done">solidcore-adapter: cad-kernel-solidcore, cad-kernel-cadrs, cad-kernel-conformance, cad-pcb (done)</a></li><li class="l2"><a href="#wasm-cad-wasm-cad-render-and-kinematicsrs-animationrs-in-cad-engine-done">wasm: cad-wasm, cad-render, and kinematics.rs / animation.rs in cad-engine (done)</a></li><li class="l2"><a href="#ci">CI</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

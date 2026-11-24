@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>plate · text-to-cad</title>
+<meta name="description" content="A flat mounting plate drawn on z = 0: a 2D model to export as DXF (laser / waterjet), and the same profile extruded as a 3 mm part. Run: cad run examples/plate.ts            (builds both)      cad run examples/plate.ts --export   (also writes out/plate.dxf and out/plate.step)">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="index.html" aria-current="page">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Examples</h4><ul><li><a href="index.html">All examples</a></li><li><a href="arm.html">arm</a></li><li><a href="blinky_pcb.html">blinky_pcb</a></li><li><a href="bracket.html">bracket</a></li><li><a href="enclosure.html">enclosure</a></li><li><a href="esp32_pcb.html">esp32_pcb</a></li><li><a href="fasteners.html">fasteners</a></li><li><a href="gear.html">gear</a></li><li><a href="gear_train.html">gear_train</a></li><li><a href="hinge_box.html">hinge_box</a></li><li><a href="knob.html">knob</a></li><li class="current"><a href="plate.html">plate</a></li><li><a href="spring.html">spring</a></li></ul></div><div class="group"><h4>Gallery</h4><ul><li><a href="../gallery/index.html">Prompts → models</a></li><li><a href="dogfood-01-nema17-mount.html">01-nema17-mount</a></li><li><a href="dogfood-02-pipe-tee.html">02-pipe-tee</a></li><li><a href="dogfood-03-phone-stand.html">03-phone-stand</a></li><li><a href="dogfood-04-desk-tray.html">04-desk-tray</a></li><li><a href="dogfood-05-sprocket.html">05-sprocket</a></li><li><a href="dogfood-06-living-hinge-box.html">06-living-hinge-box</a></li><li><a href="dogfood-07-sheet-bracket.html">07-sheet-bracket</a></li><li><a href="dogfood-08-gripper.html">08-gripper</a></li><li><a href="dogfood-09-bme280-breakout.html">09-bme280-breakout</a></li><li><a href="dogfood-10-printed-bolt.html">10-printed-bolt</a></li></ul></div></aside><main><h1 id="top">plate</h1><p class="lede">A flat mounting plate drawn on z = 0: a 2D model to export as DXF (laser / waterjet), and the same profile extruded as a 3 mm part. Run: cad run examples/plate.ts            (builds both)      cad run examples/plate.ts --export   (also writes out/plate.dxf and out/plate.step)</p><div class="actions"><a class="button primary" href="../play/index.html#code=Ly8gQSBmbGF0IG1vdW50aW5nIHBsYXRlIGRyYXduIG9uIHogPSAwOiBhIDJEIG1vZGVsIHRvIGV4cG9ydCBhcyBEWEYgKGxhc2VyIC8gd2F0ZXJqZXQpLCBhbmQgdGhlCi8vIHNhbWUgcHJvZmlsZSBleHRydWRlZCBhcyBhIDMgbW0gcGFydC4KLy8gUnVuOiBjYWQgcnVuIGV4YW1wbGVzL3BsYXRlLnRzICAgICAgICAgICAgKGJ1aWxkcyBib3RoKQovLyAgICAgIGNhZCBydW4gZXhhbXBsZXMvcGxhdGUudHMgLS1leHBvcnQgICAoYWxzbyB3cml0ZXMgb3V0L3BsYXRlLmR4ZiBhbmQgb3V0L3BsYXRlLnN0ZXApCmltcG9ydCB7IGNpcmNsZSwgbW9kZWwsIHJlY3QsIHJlZ3VsYXJQb2x5Z29uLCBzbG90IH0gZnJvbSAiQGNhZC9zZGsiOwoKY29uc3QgVyA9IDEyMCwgSCA9IDgwOwoKZnVuY3Rpb24gb3V0bGluZSgpIHsKICBjb25zdCBjb3JuZXJzID0gW1stMSwgLTFdLCBbMSwgLTFdLCBbMSwgMV0sIFstMSwgMV1dLm1hcCgoW3N4LCBzeV0pID0-IGNpcmNsZSgyLjc1KS5hdChzeCEgKiAoVyAvIDIgLSA4KSwgc3khICogKEggLyAyIC0gOCkpKTsKICByZXR1cm4gcmVjdChXLCBILCB7IHJhZGl1czogNiB9KS5ob2xlKAogICAgLi4uY29ybmVycywKICAgIHNsb3QoNDAsIDgpLmF0KDAsIDIwKSwgICAgICAgICAgICAgICAgIC8vIGEgY2FibGUgc2xvdAogICAgcmVndWxhclBvbHlnb24oOSwgNikuYXQoLTMwLCAtMTUpLCAgICAgIC8vIGEgaGV4IHBvY2tldCBmb3IgYSBudXQKICAgIGNpcmNsZSgxNSkuYXQoMjUsIC0xMiksICAgICAgICAgICAgICAgICAvLyBhIGZhbiBvcGVuaW5nCiAgKTsKfQoKZXhwb3J0IGNvbnN0IHBsYXRlMmQgPSBtb2RlbCgicGxhdGVfMmQiLCAoKSA9PiBvdXRsaW5lKCkpOwoKZXhwb3J0IGNvbnN0IHBsYXRlID0gbW9kZWwoInBsYXRlIiwgKCkgPT4gb3V0bGluZSgpLmV4dHJ1ZGUoMykubGFiZWwoInBsYXRlIiwgeyBjb2xvcjogIiM5YWEzYWQiLCBtYXRlcmlhbDogImFsdW1pbnVtIiB9KSk7CgppZiAoaW1wb3J0Lm1ldGEubWFpbikgewogIGNvbnN0IGZsYXQgPSBhd2FpdCBwbGF0ZTJkKCk7CiAgY29uc3Qgc29saWQgPSBhd2FpdCBwbGF0ZSgpOwogIGlmIChwcm9jZXNzLmFyZ3YuaW5jbHVkZXMoIi0tZXhwb3J0IikpIHsKICAgIGNvbnNvbGUubG9nKCJ3cm90ZSIsIC4uLihhd2FpdCBmbGF0LmV4cG9ydCgib3V0L3BsYXRlLmR4ZiIpKSk7CiAgICBjb25zb2xlLmxvZygid3JvdGUiLCAuLi4oYXdhaXQgc29saWQuZXhwb3J0KCJvdXQvcGxhdGUuc3RlcCIpKSk7CiAgfQp9Cg&name=plate">Open in playground</a><a class="button" href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/plate.ts">View on GitHub</a><a class="button" href="index.html">All examples</a></div><div class="figures"><figure><img src="../images/examples/plate-plate.png" alt="plate"><figcaption>plate</figcaption></figure><figure><img src="../images/examples/plate-plate_2d.png" alt="plate_2d"><figcaption>plate_2d</figcaption></figure></div>
+<h2 id="source"><a class="anchor" href="#source" aria-hidden="true">#</a>Source</h2>
+<p>Run it with <code>cad run examples/plate.ts</code>.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// A flat mounting plate drawn on z = 0: a 2D model to export as DXF (laser / waterjet), and the</span>
+<span class="t-c">// same profile extruded as a 3 mm part.</span>
+<span class="t-c">// Run: cad run examples/plate.ts            (builds both)</span>
+<span class="t-c">//      cad run examples/plate.ts --export   (also writes out/plate.dxf and out/plate.step)</span>
+<span class="t-k">import</span> { circle, model, rect, regularPolygon, slot } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">const</span> W = <span class="t-n">120</span>, H = <span class="t-n">80</span>;
+
+<span class="t-k">function</span> <span class="t-f">outline</span>() {
+  <span class="t-k">const</span> corners = [[-<span class="t-n">1</span>, -<span class="t-n">1</span>], [<span class="t-n">1</span>, -<span class="t-n">1</span>], [<span class="t-n">1</span>, <span class="t-n">1</span>], [-<span class="t-n">1</span>, <span class="t-n">1</span>]].<span class="t-f">map</span>(([sx, sy]) =&gt; <span class="t-f">circle</span>(<span class="t-n">2.75</span>).<span class="t-f">at</span>(sx! * (W / <span class="t-n">2</span> - <span class="t-n">8</span>), sy! * (H / <span class="t-n">2</span> - <span class="t-n">8</span>)));
+  <span class="t-k">return</span> <span class="t-f">rect</span>(W, H, { radius: <span class="t-n">6</span> }).<span class="t-f">hole</span>(
+    ...corners,
+    <span class="t-f">slot</span>(<span class="t-n">40</span>, <span class="t-n">8</span>).<span class="t-f">at</span>(<span class="t-n">0</span>, <span class="t-n">20</span>),                 <span class="t-c">// a cable slot</span>
+    <span class="t-f">regularPolygon</span>(<span class="t-n">9</span>, <span class="t-n">6</span>).<span class="t-f">at</span>(-<span class="t-n">30</span>, -<span class="t-n">15</span>),      <span class="t-c">// a hex pocket for a nut</span>
+    <span class="t-f">circle</span>(<span class="t-n">15</span>).<span class="t-f">at</span>(<span class="t-n">25</span>, -<span class="t-n">12</span>),                 <span class="t-c">// a fan opening</span>
+  );
+}
+
+<span class="t-k">export</span> <span class="t-k">const</span> plate2d = <span class="t-f">model</span>(<span class="t-s">"plate_2d"</span>, () =&gt; <span class="t-f">outline</span>());
+
+<span class="t-k">export</span> <span class="t-k">const</span> plate = <span class="t-f">model</span>(<span class="t-s">"plate"</span>, () =&gt; <span class="t-f">outline</span>().<span class="t-f">extrude</span>(<span class="t-n">3</span>).<span class="t-f">label</span>(<span class="t-s">"plate"</span>, { color: <span class="t-s">"#9aa3ad"</span>, material: <span class="t-s">"aluminum"</span> }));
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) {
+  <span class="t-k">const</span> flat = <span class="t-k">await</span> <span class="t-f">plate2d</span>();
+  <span class="t-k">const</span> solid = <span class="t-k">await</span> <span class="t-f">plate</span>();
+  <span class="t-k">if</span> (process.argv.<span class="t-f">includes</span>(<span class="t-s">"--export"</span>)) {
+    console.<span class="t-f">log</span>(<span class="t-s">"wrote"</span>, ...(<span class="t-k">await</span> flat.<span class="t-k">export</span>(<span class="t-s">"out/plate.dxf"</span>)));
+    console.<span class="t-f">log</span>(<span class="t-s">"wrote"</span>, ...(<span class="t-k">await</span> solid.<span class="t-k">export</span>(<span class="t-s">"out/plate.step"</span>)));
+  }
+}
+</code></pre><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/plate.ts">Source of this page</a></p></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cad step dfm · text-to-cad</title>
+<meta name="description" content="Can it be made? The manufacturing check of the file's parts (see `cad model dfm`)">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="index.html" aria-current="page">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>CLI</h4><ul><li><a href="index.html">CLI reference</a></li><li><a href="cad.html">cad</a></li><li><a href="server.html">cad server</a></li><li><a href="server-start.html">cad server start</a></li><li><a href="server-status.html">cad server status</a></li><li><a href="server-stop.html">cad server stop</a></li><li><a href="init.html">cad init</a></li><li><a href="run.html">cad run</a></li><li><a href="model.html">cad model</a></li><li><a href="model-list.html">cad model list</a></li><li><a href="model-inspect.html">cad model inspect</a></li><li><a href="model-export.html">cad model export</a></li><li><a href="model-snapshot.html">cad model snapshot</a></li><li><a href="model-interference.html">cad model interference</a></li><li><a href="model-bom.html">cad model bom</a></li><li><a href="model-dfm.html">cad model dfm</a></li><li><a href="model-fea.html">cad model fea</a></li><li><a href="model-render.html">cad model render</a></li><li><a href="model-ranges.html">cad model ranges</a></li><li><a href="viewer.html">cad viewer</a></li><li><a href="step.html">cad step</a></li><li class="current"><a href="step-dfm.html">cad step dfm</a></li><li><a href="mcp.html">cad mcp</a></li><li><a href="pcb.html">cad pcb</a></li><li><a href="urdf.html">cad urdf</a></li><li><a href="urdf-validate.html">cad urdf validate</a></li><li><a href="srdf.html">cad srdf</a></li><li><a href="srdf-validate.html">cad srdf validate</a></li><li><a href="mujoco.html">cad mujoco</a></li><li><a href="mujoco-check.html">cad mujoco check</a></li></ul></div></aside><main><p class="crumbs"><a href="cad.html">cad</a> › <a href="step.html">cad step</a></p><h1 id="top"><code>cad step dfm</code></h1><p class="lede">Can it be made? The manufacturing check of the file's parts (see `cad model dfm`)</p><pre class="code help" data-lang="text"><code>Can it be made? The manufacturing check of the file's parts (see `cad model dfm`)
+
+Usage: cad step dfm [OPTIONS] &lt;FILE&gt;
+
+Arguments:
+  &lt;FILE&gt;  
+
+Options:
+      --process &lt;PROCESS&gt;            printing, sheet, cnc or molding
+      --material &lt;MATERIAL&gt;          The material (aluminum, steel, abs, petg, ...)
+      --technology &lt;TECHNOLOGY&gt;      printing: fdm, sla, sls, mjf or pbf
+      --build-volume &lt;BUILD_VOLUME&gt;  printing: the printer's build volume, XxYxZ mm
+      --angle-limit &lt;ANGLE_LIMIT&gt;    printing: the printer's self-supporting angle from horizontal, degrees
+      --layer-height &lt;LAYER_HEIGHT&gt;  printing: layer height, mm
+      --nozzle &lt;NOZZLE&gt;              printing (FDM): nozzle diameter, mm
+      --thickness &lt;THICKNESS&gt;        sheet: the stock's thickness, mm
+      --bend-radius &lt;BEND_RADIUS&gt;    sheet: the shop's inside bend radius, mm
+      --axes &lt;AXES&gt;                  cnc: 3, 4 or 5
+      --tools &lt;TOOLS&gt;                cnc: end mill diameters, mm: 3,6,10
+      --pull &lt;PULL&gt;                  molding: the pull direction: z, x, -y or x,y,z
+      --wall-limit &lt;WALL_LIMIT&gt;      molding: faces steeper than this from the parting plane are walls, degrees
+      --strict                       A warning fails the check too
+      --json                         Print the result as one line of JSON
+  -h, --help                         Print help</code></pre></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineering drawings · text-to-cad</title>
+
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../../index.html"><img src="../../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../../docs/index.html">Docs</a><a href="../cad.html" aria-current="page">Skills</a><a href="../../examples/index.html">Examples</a><a href="../../gallery/index.html">Gallery</a><a href="../../cli/index.html">CLI</a><a class="play" href="../../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../../docs/index.html">Docs</a></li><li><a href="../cad.html">Skills</a></li><li><a href="../../examples/index.html">Examples</a></li><li><a href="../../gallery/index.html">Gallery</a></li><li><a href="../../cli/index.html">CLI</a></li><li><a href="../../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../cad.html">CAD modeling and inspection</a></li><li><a href="../fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../pcb.html">Circuit boards</a></li><li><a href="../render.html">Renders for people</a></li><li><a href="../robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>References</h4><ul><li class="current"><a href="drawings.html">Engineering drawings</a></li><li><a href="exports.html">Exports</a></li><li><a href="inspection-and-validation.html">Inspecting and checking models</a></li><li><a href="manufacturing-cnc.html">CNC milling</a></li><li><a href="manufacturing-injection-molding.html">Injection molding</a></li><li><a href="manufacturing-printing.html">3D printing</a></li><li><a href="manufacturing-review.html">Manufacturing checks: the result, the review, a redesign</a></li><li><a href="manufacturing-sheet-metal.html">Sheet metal</a></li><li><a href="mechanisms.html">Mechanisms: joints, poses and animations</a></li><li><a href="model-contract.html">Models</a></li><li><a href="parts.html">Standard parts</a></li><li><a href="sdk-modeling.html">@cad/sdk modeling</a></li><li><a href="selectors.html">Selectors</a></li><li><a href="snapshot-review.html">Snapshots</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="../../docs/api.html">Server API (cad server)</a></li><li><a href="../../docs/cli.html">cad command line</a></li><li><a href="../../docs/index.html">Documentation</a></li><li><a href="../../docs/install.html">Installing text-to-cad-rs</a></li><li><a href="../../docs/ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="../../docs/kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/licenses.html">Licences</a></li><li><a href="../../docs/quality-report.html">Workspace quality report</a></li><li><a href="../../docs/robots.html">Robot descriptions</a></li><li><a href="../../docs/security.html">Security and resource limits</a></li><li><a href="../../docs/test-port.html">Porting the original test suite</a></li><li><a href="../../docs/test-status.html">Test status</a></li></ul></div></aside><main><h1 id="engineering-drawings"><a class="anchor" href="#engineering-drawings" aria-hidden="true">#</a>Engineering drawings</h1>
+<p>Read this when the person asks for a drawing, a dimensioned sheet, shop or manufacturing drawings,
+a blueprint, or &quot;2D views of this part&quot;. A drawing is projected from the model's geometry, so it
+follows the model: change the model, run it again, export the drawing again.</p>
+<p>A drawing is not a DXF cut file: for a laser/waterjet profile or a flat pattern, export <code>.dxf</code>
+(<a href="exports.html#dxf-and-2d-profiles">exports</a>).</p>
+<h2 id="make-one"><a class="anchor" href="#make-one" aria-hidden="true">#</a>Make one</h2>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> run src/bracket.ts                       <span class="t-c"># build; note the id it prints</span>
+<span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$ID"</span> drawings/bracket.pdf --part-number BR-<span class="t-n">001</span> --general-tolerance <span class="t-s">"ISO 2768-m"</span></code></pre>
+<p><code>.pdf</code> and <code>.svg</code> both write the drawing: one landscape A-size sheet (A3 unless <code>--sheet</code>) with</p>
+<ul><li>the top, front and right views in <strong>third-angle</strong> projection (<code>--projection first</code> for first<p>angle) and an isometric in the free corner (<code>--views</code> picks: <code>front top right left bottom back iso</code>);</p></li><li>visible edges heavy, hidden edges dashed and grey (tangent edges behind material are left out;<p><code>--no-hidden</code> drops hidden lines), centre lines on every circle seen end-on;</p></li><li><strong>overall dimensions</strong>, each model axis once (width and height on the front view, depth on the top);</li><li><strong>hole callouts</strong> from the geometry, grouped by size and drilling axis: <code>4× Ø6 THRU</code>,<p><code>Ø4 × 5 DEEP</code> (<code>--no-dimensions</code> drops dimensions and callouts);</p></li><li>a title block: title (the model name unless <code>--title</code>), part number, material (the parts'<p>materials unless <code>--material</code>), scale, units (mm), date (today unless <code>--date</code>), revision, and
+the projection symbol; numbered notes above it (<code>--general-tolerance</code> is note 1, then each <code>--note</code>).</p></li></ul>
+<p>The <strong>scale</strong> is the largest standard one (50:1, 20:1, 10:1, 5:1, 2:1, 1:1, 1:2, 1:5, 1:10, …) at
+which the views fit the sheet. <code>--scale 0.5</code> asks for 1:2; if that does not fit, the export is
+refused and names a scale that does (or says to use a larger <code>--sheet</code>).</p>
+<h2 id="check-it"><a class="anchor" href="#check-it" aria-hidden="true">#</a>Check it</h2>
+<p>Look at the drawing before handing it over. <code>pdftoppm -png -r 80 bracket.pdf out</code> (or open the
+SVG) and read it:</p>
+<ul><li>every hole has a centre mark and its callout says the right size and count;</li><li>the overall dimensions are the part's size (they are measured from the geometry; if one looks<p>wrong the model is wrong);</p></li><li>hidden lines appear where features are behind faces.</li></ul>
+<h2 id="what-it-does-not-do"><a class="anchor" href="#what-it-does-not-do" aria-hidden="true">#</a>What it does not do</h2>
+<ul><li>Only overall sizes and holes are dimensioned automatically: feature positions (hole pitch, slot<p>widths) are not. Say so in the hand-off, or add a note (<code>--note &quot;HOLES ON 28 × 18 PITCH.&quot;</code>).</p></li><li>No sections, detail or auxiliary views; tolerances are only the ones given<p>(<code>--general-tolerance</code>, notes), never invented.</p></li><li>Counterbores and countersinks are called out as their separate diameters and depths.</li><li>Threads are not recognised: a modelled tapped hole is called out at its modelled diameter.</li></ul><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/skills/cad/references/drawings.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#make-one">Make one</a></li><li class="l2"><a href="#check-it">Check it</a></li><li class="l2"><a href="#what-it-does-not-do">What it does not do</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../../assets/site.js" defer></script>
+</body>
+</html>

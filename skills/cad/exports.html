@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exports · text-to-cad</title>
+
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../../index.html"><img src="../../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../../docs/index.html">Docs</a><a href="../cad.html" aria-current="page">Skills</a><a href="../../examples/index.html">Examples</a><a href="../../gallery/index.html">Gallery</a><a href="../../cli/index.html">CLI</a><a class="play" href="../../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../../docs/index.html">Docs</a></li><li><a href="../cad.html">Skills</a></li><li><a href="../../examples/index.html">Examples</a></li><li><a href="../../gallery/index.html">Gallery</a></li><li><a href="../../cli/index.html">CLI</a></li><li><a href="../../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../cad.html">CAD modeling and inspection</a></li><li><a href="../fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../pcb.html">Circuit boards</a></li><li><a href="../render.html">Renders for people</a></li><li><a href="../robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>References</h4><ul><li><a href="drawings.html">Engineering drawings</a></li><li class="current"><a href="exports.html">Exports</a></li><li><a href="inspection-and-validation.html">Inspecting and checking models</a></li><li><a href="manufacturing-cnc.html">CNC milling</a></li><li><a href="manufacturing-injection-molding.html">Injection molding</a></li><li><a href="manufacturing-printing.html">3D printing</a></li><li><a href="manufacturing-review.html">Manufacturing checks: the result, the review, a redesign</a></li><li><a href="manufacturing-sheet-metal.html">Sheet metal</a></li><li><a href="mechanisms.html">Mechanisms: joints, poses and animations</a></li><li><a href="model-contract.html">Models</a></li><li><a href="parts.html">Standard parts</a></li><li><a href="sdk-modeling.html">@cad/sdk modeling</a></li><li><a href="selectors.html">Selectors</a></li><li><a href="snapshot-review.html">Snapshots</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="../../docs/api.html">Server API (cad server)</a></li><li><a href="../../docs/cli.html">cad command line</a></li><li><a href="../../docs/index.html">Documentation</a></li><li><a href="../../docs/install.html">Installing text-to-cad-rs</a></li><li><a href="../../docs/ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="../../docs/kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/licenses.html">Licences</a></li><li><a href="../../docs/quality-report.html">Workspace quality report</a></li><li><a href="../../docs/robots.html">Robot descriptions</a></li><li><a href="../../docs/security.html">Security and resource limits</a></li><li><a href="../../docs/test-port.html">Porting the original test suite</a></li><li><a href="../../docs/test-status.html">Test status</a></li></ul></div></aside><main><h1 id="exports"><a class="anchor" href="#exports" aria-hidden="true">#</a>Exports</h1>
+<p>Read this file when the person asks for STEP, STL, 3MF, GLB, OBJ, BREP or DXF files, a 2D profile or
+flat pattern, or a file converted to another format.</p>
+<h2 id="contents"><a class="anchor" href="#contents" aria-hidden="true">#</a>Contents</h2>
+<ul><li><a href="#a-file-is-an-action">A file is an action</a></li><li><a href="#formats">Formats</a></li><li><a href="#mesh-tolerance">Mesh tolerance</a></li><li><a href="#exporting-from-a-script">Exporting from a script</a></li><li><a href="#one-part-of-an-assembly">One part of an assembly</a></li><li><a href="#dxf-and-2d-profiles">DXF and 2D profiles</a></li><li><a href="#converting-a-file">Converting a file</a></li></ul>
+<h2 id="a-file-is-an-action"><a class="anchor" href="#a-file-is-an-action" aria-hidden="true">#</a>A file is an action</h2>
+<p>A file is written from the document the server holds, when asked, each destination by its suffix.
+No code changes and nothing rebuilds:</p>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$ID"</span> out/bracket.step out/bracket.stl out/bracket.glb</code></pre>
+<ul><li>Run the model first: an export writes the document as its last successful build left it.</li><li>Folders are created as needed; an existing file is replaced.</li><li>A written file is a detached copy: it changes only when exported again. Give the person its<p>path.</p></li></ul>
+<h2 id="formats"><a class="anchor" href="#formats" aria-hidden="true">#</a>Formats</h2>
+<div class="table"><table><thead><tr><th>Suffix</th><th>Holds</th><th>For</th></tr></thead><tbody><tr><td><code>.step</code> / <code>.stp</code></td><td>Exact B-rep, assembly tree, part names and colours</td><td>CAD exchange, machining, the default deliverable</td></tr><tr><td><code>.brep</code></td><td>The kernel's native B-rep</td><td>Reloading into OCCT tools</td></tr><tr><td><code>.stl</code></td><td>Triangles, one mesh</td><td>3D printing (slicers)</td></tr><tr><td><code>.3mf</code></td><td>Triangles per part, with names and colours</td><td>3D printing with parts and colours</td></tr><tr><td><code>.glb</code></td><td>Triangles per part, with colours and the assembly tree</td><td>Web viewers, rendering, AR</td></tr><tr><td><code>.obj</code></td><td>Triangles</td><td>Older mesh tools</td></tr><tr><td><code>.dxf</code></td><td>2D lines, circles, arcs</td><td>Laser, waterjet, router (<a href="#dxf-and-2d-profiles">below</a>)</td></tr><tr><td><code>.pdf</code> / <code>.svg</code></td><td>A dimensioned engineering drawing</td><td>A shop's drawing (<a href="drawings.html">drawings</a>)</td></tr></tbody></table></div>
+<p>When the person names no format, STEP is the one that keeps the geometry exact; add an STL or 3MF
+when the part is going to a printer.</p>
+<h2 id="mesh-tolerance"><a class="anchor" href="#mesh-tolerance" aria-hidden="true">#</a>Mesh tolerance</h2>
+<p><code>--tolerance MM</code> (chordal deviation) and <code>--angle DEG</code> (angular deviation) mesh <code>.stl</code>, <code>.3mf</code>,
+<code>.glb</code> and <code>.obj</code> finer or coarser:</p>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$ID"</span> out/knob.stl --tolerance <span class="t-n">0.01</span> --angle <span class="t-n">5</span>     <span class="t-c"># a print with fine fits</span>
+<span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$ID"</span> out/preview.glb --tolerance <span class="t-n">0.2</span>              <span class="t-c"># a light web preview</span></code></pre>
+<p>The defaults suit viewing. For a print with press fits or small holes, use 0.01–0.02 mm. They
+apply to mesh files only: an export naming a <code>.step</code>, <code>.brep</code> or <code>.dxf</code> with them is refused
+(exit 2) and writes nothing, so export the exact formats in a separate command.</p>
+<h2 id="exporting-from-a-script"><a class="anchor" href="#exporting-from-a-script" aria-hidden="true">#</a>Exporting from a script</h2>
+<p>The handle a model call returns exports the same way, paths relative to the working directory:</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) {
+  <span class="t-k">const</span> h = <span class="t-k">await</span> <span class="t-f">plate</span>();
+  <span class="t-k">if</span> (process.argv.<span class="t-f">includes</span>(<span class="t-s">"--export"</span>)) {
+    <span class="t-k">await</span> h.<span class="t-k">export</span>(<span class="t-s">"out/plate.step"</span>, <span class="t-s">"out/plate.stl"</span>, { tolerance: <span class="t-n">0.02</span> });
+  }
+}</code></pre>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> run src/plate.ts --<span class="t-k">export</span></code></pre>
+<p>Keep a plain run free of file writes: write files when the person asked for them, behind an
+argument like this, or with <code>cad model export</code>.</p>
+<h2 id="one-part-of-an-assembly"><a class="anchor" href="#one-part-of-an-assembly" aria-hidden="true">#</a>One part of an assembly</h2>
+<p>An export is a whole document. For one part alone, export that part's own model (the reason each
+part of an assembly gets a model of its own, <a href="model-contract.html#assemblies">assemblies</a>):</p>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$LID_ID"</span> out/lid.stl</code></pre>
+<h2 id="dxf-and-2d-profiles"><a class="anchor" href="#dxf-and-2d-profiles" aria-hidden="true">#</a>DXF and 2D profiles</h2>
+<p>A DXF is written from geometry that lies on z = 0: a profile on <code>Plane.XY</code> (or wires). Its edges
+become LINE, CIRCLE and ARC entities; splines become polylines. A 3D solid exports its section at
+z = 0.</p>
+<p>Model the flat outline once and use it for both the 2D model and the solid:</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">import</span> { circle, model, rect, slot } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">function</span> <span class="t-f">outline</span>() {
+  <span class="t-k">return</span> <span class="t-f">rect</span>(<span class="t-n">120</span>, <span class="t-n">80</span>, { radius: <span class="t-n">6</span> }).<span class="t-f">hole</span>(
+    <span class="t-f">circle</span>(<span class="t-n">2.75</span>).<span class="t-f">at</span>(-<span class="t-n">52</span>, -<span class="t-n">32</span>), <span class="t-f">circle</span>(<span class="t-n">2.75</span>).<span class="t-f">at</span>(<span class="t-n">52</span>, -<span class="t-n">32</span>), <span class="t-f">circle</span>(<span class="t-n">2.75</span>).<span class="t-f">at</span>(<span class="t-n">52</span>, <span class="t-n">32</span>), <span class="t-f">circle</span>(<span class="t-n">2.75</span>).<span class="t-f">at</span>(-<span class="t-n">52</span>, <span class="t-n">32</span>),
+    <span class="t-f">slot</span>(<span class="t-n">40</span>, <span class="t-n">8</span>).<span class="t-f">at</span>(<span class="t-n">0</span>, <span class="t-n">20</span>),
+  );
+}
+
+<span class="t-k">export</span> <span class="t-k">const</span> plate2d = <span class="t-f">model</span>(<span class="t-s">"plate_2d"</span>, () =&gt; <span class="t-f">outline</span>());                         <span class="t-c">// export this as .dxf</span>
+<span class="t-k">export</span> <span class="t-k">const</span> plate = <span class="t-f">model</span>(<span class="t-s">"plate"</span>, () =&gt; <span class="t-f">outline</span>().<span class="t-f">extrude</span>(<span class="t-n">3</span>).<span class="t-f">label</span>(<span class="t-s">"plate"</span>));     <span class="t-c">// and this as .step</span>
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) { <span class="t-k">await</span> <span class="t-f">plate2d</span>(); <span class="t-k">await</span> <span class="t-f">plate</span>(); }</code></pre>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$PLATE_2D_ID"</span> out/plate.dxf
+<span class="t-f">cad</span> model snapshot <span class="t-s">"$PLATE_2D_ID"</span> out/plate_top.png --camera top</code></pre>
+<ul><li>Draw on <code>Plane.XY</code> at z = 0. A profile on another plane, or moved off z = 0, is not a drawing.</li><li>Bend lines and other marks are parts of their own beside the cut profile:<p><code>assembly(&quot;flat&quot;, [outline.label(&quot;cut&quot;), polyline([[x, -w / 2, 0], [x, w / 2, 0]]).label(&quot;bend_1_up_90&quot;)])</code>.
+Each part is a layer of its own, named by its path upper-cased (<code>BLANK_BEND_1_UP_90</code>), so name
+bend lines for what they are; still tell the shop which layer bends which way.</p></li><li>A DXF is in millimetres. Say so to the person: some cutting services assume inches.</li><li>A sheet part with bends has no flat pattern here: model the flat blank as a 2D profile.</li><li>Check a DXF with a <code>--camera top</code> snapshot of its model; count the holes and slots against the<p>request.</p></li></ul>
+<h2 id="converting-a-file"><a class="anchor" href="#converting-a-file" aria-hidden="true">#</a>Converting a file</h2>
+<p><code>cad viewer FILE --json</code> opens a STEP or STL as a document and prints its id and page; that id
+exports like a model's:</p>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> viewer vendor/motor.step --json      <span class="t-c"># → [{ "file": "…", "id": "…", "url": "…" }]</span>
+<span class="t-f">cad</span> model <span class="t-k">export</span> <span class="t-s">"$ID"</span> out/motor.glb</code></pre>
+<p>A mesh (STL) has no B-rep: it converts to other mesh formats, not to a meaningful STEP or DXF.</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/skills/cad/references/exports.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#contents">Contents</a></li><li class="l2"><a href="#a-file-is-an-action">A file is an action</a></li><li class="l2"><a href="#formats">Formats</a></li><li class="l2"><a href="#mesh-tolerance">Mesh tolerance</a></li><li class="l2"><a href="#exporting-from-a-script">Exporting from a script</a></li><li class="l2"><a href="#one-part-of-an-assembly">One part of an assembly</a></li><li class="l2"><a href="#dxf-and-2d-profiles">DXF and 2D profiles</a></li><li class="l2"><a href="#converting-a-file">Converting a file</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../../assets/site.js" defer></script>
+</body>
+</html>

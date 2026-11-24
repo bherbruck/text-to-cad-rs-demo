@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Server API (cad server) · text-to-cad</title>
+
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="index.html" aria-current="page">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../skills/cad.html">CAD modeling and inspection</a></li><li><a href="../skills/fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../skills/pcb.html">Circuit boards</a></li><li><a href="../skills/render.html">Renders for people</a></li><li><a href="../skills/robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li class="current"><a href="api.html">Server API (cad server)</a></li><li><a href="cli.html">cad command line</a></li><li><a href="index.html">Documentation</a></li><li><a href="install.html">Installing text-to-cad-rs</a></li><li><a href="ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="licenses.html">Licences</a></li><li><a href="quality-report.html">Workspace quality report</a></li><li><a href="robots.html">Robot descriptions</a></li><li><a href="security.html">Security and resource limits</a></li><li><a href="test-port.html">Porting the original test suite</a></li><li><a href="test-status.html">Test status</a></li></ul></div></aside><main><h1 id="server-api-cad-server"><a class="anchor" href="#server-api-cad-server" aria-hidden="true">#</a>Server API (<code>cad server</code>)</h1>
+<p>One local server per user holds every document and serves the viewer. State file:
+<code>~/.cad/server.json</code> → <code>{ &quot;port&quot;: 7878, &quot;token&quot;: &quot;…&quot;, &quot;pid&quot;: 123, &quot;kernel&quot;: &quot;occt&quot; }</code>.</p>
+<p>Every <code>/api</code> request carries the token: <code>Authorization: Bearer &lt;token&gt;</code> or <code>?token=&lt;token&gt;</code>.
+The viewer page is opened as <code>http://127.0.0.1:&lt;port&gt;/view/&lt;id&gt;?token=&lt;token&gt;</code> and keeps the
+token for its API and WebSocket calls. JSON everywhere unless noted.</p>
+<h2 id="documents"><a class="anchor" href="#documents" aria-hidden="true">#</a>Documents</h2>
+<p>A <strong>document</strong> is one model's latest build. Its id is a UUIDv5 of <code>abs script path + &quot;::&quot; + model</code>
+(namespace <code>6ba7b811-9dad-11d1-80b4-00c04fd430c8</code>, the URL namespace), so it is stable across runs.
+Files opened with <code>cad viewer FILE</code> get a UUIDv5 of the absolute file path.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> Doc = {
+  id: string; model: string; script: string | <span class="t-k">null</span>; file: string | <span class="t-k">null</span>;
+  kernel: string; version: number;           <span class="t-c">// bumps on every build, failed ones too (geometry stays from the last success)</span>
+  updatedAt: string;                          <span class="t-c">// ISO time</span>
+  params: Param[];
+  bounds: Bounds | <span class="t-k">null</span>;
+  parts: PartInfo[];
+  error: BuildError | <span class="t-k">null</span>;                   <span class="t-c">// last build's error; geometry stays from the last success</span>
+  url: string;                                <span class="t-c">// viewer page</span>
+  joints: JointInfo[];                        <span class="t-c">// [] when the model is no mechanism (docs/ir.md "Joints")</span>
+  poses: { [pose: string]: { [joint: string]: number } };
+  animations: Animation[];                    <span class="t-c">// docs/ir.md "Animations", resolved (below)</span>
+};
+<span class="t-k">type</span> Bounds = { min: [n,n,n]; max: [n,n,n] };
+<span class="t-k">type</span> PartInfo = {
+  path: string;           <span class="t-c">// labels from the root joined by "/", e.g. "gripper/finger_left"; unique</span>
+  labels: string[];       <span class="t-c">// the same labels, unjoined (a label may itself contain "/"; quote it in refs)</span>
+  label: string; color: string | <span class="t-k">null</span>;       <span class="t-c">// "#rrggbb"</span>
+  material: { name: string; density: number } | <span class="t-k">null</span>;
+  designation?: string;   <span class="t-c">// what it is bought as ("ISO 4762 M5x25"), from the part op; absent when unset</span>
+  kind: <span class="t-s">"solid"</span> | <span class="t-s">"compound"</span> | <span class="t-s">"shell"</span> | <span class="t-s">"face"</span> | <span class="t-s">"wire"</span> | <span class="t-s">"edge"</span> | <span class="t-s">"other"</span>;
+  volume: number; area: number; mass: number | <span class="t-k">null</span>;  <span class="t-c">// mass in g when material set</span>
+  center: [n,n,n]; bounds: Bounds; faces: number; edges: number; valid: boolean;
+  src: string | <span class="t-k">null</span>;     <span class="t-c">// where the part node was made</span>
+};
+<span class="t-k">type</span> Param = { name: string; value: number; min?: number; max?: number; step?: number; unit?: string; description?: string };
+<span class="t-k">type</span> BuildError = { message: string; op?: string; src?: string };</code></pre>
+<div class="table"><table><thead><tr><th>Method</th><th>Path</th><th>Body / query</th><th>Returns</th></tr></thead><tbody><tr><td>GET</td><td><code>/api/health</code></td><td>–</td><td><code>{ ok, version, kernel, kernelVersion, instance }</code> (no token needed; <code>instance</code> is a random id per server process: a change means the server restarted)</td></tr><tr><td>POST</td><td><code>/api/build</code></td><td>IR envelope (docs/ir.md)</td><td><code>BuildResult</code></td></tr><tr><td>GET</td><td><code>/api/docs</code></td><td>–</td><td><code>Doc[]</code> (newest first)</td></tr><tr><td>GET</td><td><code>/api/docs/:id</code></td><td>–</td><td><code>Doc</code></td></tr><tr><td>DELETE</td><td><code>/api/docs/:id</code></td><td>–</td><td><code>{ ok }</code></td></tr><tr><td>GET</td><td><code>/api/docs/:id/mesh</code></td><td>–</td><td><code>MeshPayload</code></td></tr><tr><td>GET</td><td><code>/api/docs/:id/mesh.bin</code></td><td><code>?normals=0</code> optional</td><td>binary mesh (<code>application/octet-stream</code>, below)</td></tr><tr><td>GET</td><td><code>/api/docs/:id/inspect</code></td><td><code>?ref=&lt;ref&gt;</code> optional</td><td><code>Inspect</code></td></tr><tr><td>POST</td><td><code>/api/docs/:id/export</code></td><td><code>{ files: string[], tolerance?, angle?, drawing?: DrawingOptions }</code> (absolute paths; <code>drawing</code> for <code>.svg</code>/<code>.pdf</code> only)</td><td><code>{ written: string[] }</code></td></tr><tr><td>POST</td><td><code>/api/docs/:id/snapshot</code></td><td><code>{ out, camera?, display?, width?, height?, part?, pose? }</code></td><td><code>{ written }</code></td></tr><tr><td>POST</td><td><code>/api/docs/:id/ranges</code></td><td><code>{ joints?: string[], step?: 1, clearance?: 0.3 }</code></td><td><code>Ranges</code> (<a href="#mechanisms">Mechanisms</a>)</td></tr><tr><td>POST</td><td><code>/api/docs/:id/interference</code></td><td><code>{ pose?: Pose }</code> optional</td><td><code>{ pairs: [{ a, b, volume }], unmeasured: [{ a, b, reason }] }</code> — volume summed per solid pair; a pair whose boolean fails is <code>unmeasured</code>, never clear</td></tr><tr><td>POST</td><td><code>/api/open</code></td><td><code>{ path }</code> (STEP/STL)</td><td><code>Doc</code></td></tr><tr><td>GET</td><td><code>/api/events</code></td><td>WebSocket</td><td>stream of <code>Event</code></td></tr></tbody></table></div>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> BuildResult = {
+  ok: boolean; id: string; url: string; model: string; version: number;
+  ms: { total: number; eval: number; mesh: number };
+  cache: { hits: number; misses: number; unused: number };  <span class="t-c">// each node counted once: hits (reused, or under a reused node) + misses (evaluated) + unused (not reached from the root) = nodes</span>
+  parts: PartInfo[]; bounds: Bounds | <span class="t-k">null</span>; error: BuildError | <span class="t-k">null</span>; warnings: string[];
+};
+<span class="t-k">type</span> Event = { <span class="t-k">type</span>: <span class="t-s">"doc"</span>; id: string; version: number } | { <span class="t-k">type</span>: <span class="t-s">"removed"</span>; id: string }
+  | { <span class="t-k">type</span>: <span class="t-s">"fea"</span>; id: string; version: number };</code></pre>
+<h3 id="mesh-payload"><a class="anchor" href="#mesh-payload" aria-hidden="true">#</a>Mesh payload</h3>
+<p>Typed arrays are base64 of little-endian data.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> MeshPayload = {
+  id: string; version: number;
+  parts: {
+    path: string; label: string; color: string | <span class="t-k">null</span>;
+    positions: string;          <span class="t-c">// f32 xyz</span>
+    normals: string;            <span class="t-c">// f32 xyz</span>
+    indices: string;            <span class="t-c">// u32</span>
+    faceRanges: [number, number][];   <span class="t-c">// per face: [firstIndex, indexCount] into indices (face i = kernel face i)</span>
+    edgePositions: string;      <span class="t-c">// f32 xyz, line-list pairs (2 points per segment)</span>
+    edgeRanges: [number, number][];   <span class="t-c">// per edge: [firstVertex, vertexCount] into edgePositions</span>
+    faceFingerprints: string[];       <span class="t-c">// per face: its fingerprint ("References"), for refs that survive rebuilds</span>
+    edgeFingerprints: string[];       <span class="t-c">// per edge</span>
+  }[];
+};</code></pre>
+<h3 id="binary-mesh"><a class="anchor" href="#binary-mesh" aria-hidden="true">#</a>Binary mesh</h3>
+<p><code>/api/docs/:id/mesh.bin</code> is the same mesh as <code>MeshPayload</code> without base64: about a quarter
+smaller, and its buffers are viewed in place (<code>new Float32Array(buf, 16 + jsonLength + offset, count)</code>).</p>
+<pre class="code" data-lang="text"><button class="copy" type="button" aria-label="Copy">Copy</button><code>bytes 0..8    "CADMESH1"
+bytes 8..12   u32 LE jsonLength (a multiple of 4)
+bytes 12..16  u32 0 (reserved)
+16..16+jsonLength   JSON header, padded with spaces
+then          the data section: little-endian f32/u32 buffers, each 4-byte aligned</code></pre>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> Buf = { offset: number; count: number };   <span class="t-c">// offset in bytes into the data section; count in scalars</span>
+<span class="t-k">type</span> MeshBinHeader = {
+  id: string; version: number;
+  parts: {
+    path: string; label: string; color: string | <span class="t-k">null</span>;
+    positions: Buf;          <span class="t-c">// f32 xyz</span>
+    normals: Buf | <span class="t-k">null</span>;     <span class="t-c">// f32 xyz; null with ?normals=0 (compute them from the triangles)</span>
+    indices: Buf;            <span class="t-c">// u32</span>
+    faceRanges: [number, number][];  <span class="t-c">// as in MeshPayload</span>
+    edgePositions: Buf;      <span class="t-c">// f32 xyz line-list pairs</span>
+    edgeRanges: [number, number][];  <span class="t-c">// as in MeshPayload; a seam edge has count 0</span>
+  }[];
+};</code></pre>
+<p>The engine's <code>cad_engine::mesh_binary</code> writes it, and <code>read_mesh_binary</code> splits it again.</p>
+<h3 id="drawings"><a class="anchor" href="#drawings" aria-hidden="true">#</a>Drawings</h3>
+<p>Exporting to <code>.pdf</code> or <code>.svg</code> writes an engineering drawing (one A-size sheet): orthographic views
+in third-angle (default) or first-angle projection plus an isometric, hidden lines dashed, centre
+marks on circular edges, hole callouts (<code>4× Ø6 THRU</code>, <code>Ø4 × 5 DEEP</code>, grouped by size and axis),
+overall dimensions (each model axis once), numbered notes and a title block (title, part number,
+material, scale, units, date, revision, projection symbol). The scale is the largest ISO 5455
+scale (50:1 … 1:2000) at which the views fit; a requested scale that does not fit is refused with
+one that does. The bytes depend only on the content (no creation date).</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> DrawingOptions = {
+  sheet?: <span class="t-s">"A4"</span> | <span class="t-s">"A3"</span> | <span class="t-s">"A2"</span> | <span class="t-s">"A1"</span> | <span class="t-s">"A0"</span>;       <span class="t-c">// landscape; default A3</span>
+  projection?: <span class="t-s">"third"</span> | <span class="t-s">"first"</span>;                  <span class="t-c">// default third</span>
+  views?: (<span class="t-s">"front"</span> | <span class="t-s">"top"</span> | <span class="t-s">"right"</span> | <span class="t-s">"left"</span> | <span class="t-s">"bottom"</span> | <span class="t-s">"back"</span> | <span class="t-s">"iso"</span>)[];  <span class="t-c">// default top, front, right, iso</span>
+  scale?: number;                                  <span class="t-c">// 0.5 = 1:2; default: largest standard scale that fits</span>
+  title?: string; partNumber?: string; material?: string; revision?: string; author?: string;
+  date?: string;                                   <span class="t-c">// printed as given (the CLI passes today's date)</span>
+  notes?: string[]; generalTolerance?: string;     <span class="t-c">// e.g. "ISO 2768-m" → note 1</span>
+  hidden?: boolean;                                <span class="t-c">// hidden lines, default true</span>
+  dimensions?: boolean;                            <span class="t-c">// dimensions and hole callouts, default true</span>
+  part?: string;                                   <span class="t-c">// one part (or sub-assembly) by path</span>
+};</code></pre>
+<h3 id="fea-stress-checks"><a class="anchor" href="#fea-stress-checks" aria-hidden="true">#</a>FEA (stress checks)</h3>
+<p><code>POST /api/docs/:id/fea</code> solves a linear static study (crate <code>cad-fea</code>: STEP via the engine →
+gmsh quadratic tets, touching parts bonded into one conformal mesh → CalculiX). Body: a <code>Study</code>
+(the same JSON <code>cad model fea --study</code> takes); returns <code>FeaResult</code>. The server keeps the latest
+result per document (dropped when the document is rebuilt). <code>GET /api/docs/:id/fea</code> returns
+<code>{ version, result: FeaResult, vonMises: FieldPayload, displacement: FieldPayload }</code> for the
+viewer's colour overlay, or 404 when none has run since the last build. A POST with no
+fixtures and no loads returns <code>{ faces: [{ ref, surface, area, center, hint }] }</code> (the faces to
+choose from) and solves nothing. Studies run one at a time. A finished study sends
+<code>{ &quot;type&quot;: &quot;fea&quot;, &quot;id&quot;, &quot;version&quot; }</code> on <code>/api/events</code>. A part with no bonded path to a fixture is
+refused (<code>not_connected: ...</code>, with the nearest gap).</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> Study = {
+  fixtures: { faces: string[]; <span class="t-k">type</span>?: <span class="t-s">"fixed"</span> | <span class="t-s">"roller"</span> }[];        <span class="t-c">// refs: "part/face n" or viewer refs</span>
+  loads: ({ <span class="t-k">type</span>: <span class="t-s">"force"</span>; faces: string[]; vector_N: [n, n, n] }
+         | { <span class="t-k">type</span>: <span class="t-s">"pressure"</span>; faces: string[]; pressure_MPa: number }   <span class="t-c">// positive into the part</span>
+         | { <span class="t-k">type</span>: <span class="t-s">"gravity"</span> | <span class="t-s">"acceleration"</span>; vector_g: [n, n, n] })[];
+  material?: string | Material;            <span class="t-c">// every part: a table name ("aluminium 6061", "steel", "PETG"…) or numbers</span>
+  parts?: Record&lt;string, string | Material&gt;;   <span class="t-c">// one part's, by path</span>
+  mesh?: { size_mm?: number; refine?: boolean };  <span class="t-c">// default: bbox diagonal / 40; refine when SF &lt; 3</span>
+  margin?: number;                          <span class="t-c">// safety factor to keep, default 2</span>
+  checks?: ({ kind: <span class="t-s">"stress"</span> } | { kind: <span class="t-s">"displacement"</span>; limit_mm: number; faces?: string[]; label?: string })[];
+};
+<span class="t-k">type</span> Material = { name?: string; E_MPa: number; nu: number; yield_MPa: number; density_t_per_mm3?: number };
+<span class="t-k">type</span> FeaResult = {
+  ok: boolean; summary: string;
+  findings: { severity: <span class="t-s">"error"</span> | <span class="t-s">"warning"</span>; code: string; message: string; at_mm?: [n, n, n]; face?: string }[];
+  measurements: {
+    max_von_mises_mpa: number; max_von_mises_at_mm: [n, n, n]; max_von_mises_face: string | <span class="t-k">null</span>;
+    max_von_mises_gauss_mpa: number; yield_mpa: number; safety_factor: number; weakest_part: string;
+    max_displacement_mm: number; max_displacement_at_mm: [n, n, n]; max_displacement_face: string | <span class="t-k">null</span>;
+    applied_force_n: [n, n, n]; reaction_force_n: [n, n, n];
+    mesh: { size_mm: number; elements: number; nodes: number; dofs: number };
+    refined: { from_size_mm: number; from_max_von_mises_mpa: number; size_mm: number; max_von_mises_mpa: number } | <span class="t-k">null</span>;
+    parts: { path: string; material: Material; peak_mpa: number; peak_gauss_mpa: number; peak_at_mm: [n, n, n];
+             peak_face: string | <span class="t-k">null</span>; safety_factor: number; max_displacement_mm: number }[];
+    checks: { kind: string; label: string; value: number; limit: number; unit: string; ratio: number; status: <span class="t-s">"passes"</span> | <span class="t-s">"close"</span> | <span class="t-s">"fails"</span> }[];
+    contacts: { a: string; b: string; <span class="t-k">type</span>: <span class="t-s">"bonded"</span> | <span class="t-s">"not_connected"</span>; area_mm2: number; gap_mm: number }[];  <span class="t-c">// part pairs touching or within 1 mm</span>
+    seconds: number;
+  };
+};
+<span class="t-k">type</span> FieldPayload = { label: string; unit: string; min: number; max: number;
+  parts: { path: string; values: string;    <span class="t-c">// base64 f32 LE, one per vertex of that part's MeshPayload positions</span>
+           vectors?: string }[] };          <span class="t-c">// displacement only: base64 f32 LE xyz per vertex (mm); draw position + scale·vector for the deformed shape</span></code></pre>
+<p>Units are fixed: mm, N, MPa, t/mm³, g. Material defaults to each part's model material looked up
+in the table (its density from the model); a part with neither is refused by name. Errors
+(<code>yields</code>, <code>displacement_over_limit</code>) make <code>ok</code> false; warnings (<code>low_margin</code>, <code>peak_at_fixture</code>,
+<code>peak_concentration</code>, <code>mesh_not_converged</code>, <code>large_displacement</code>, <code>reaction_mismatch</code>) do not.
+Snapshots take an optional field: <code>POST /api/docs/:id/snapshot</code> with <code>&quot;field&quot;: &quot;vonMises&quot; |
+&quot;displacement&quot;</code> colours the faces by the latest result (blue → red, 0 → peak).</p>
+<h3 id="persistence"><a class="anchor" href="#persistence" aria-hidden="true">#</a>Persistence</h3>
+<p>Documents survive a server restart: each successful build or open writes
+<code>$CAD_HOME/docs/&lt;id&gt;.cad</code> (the geometry, kernel-native) and <code>&lt;id&gt;.json</code> (version, <code>updatedAt</code>,
+error, model, script/file, kernel), atomically. On start the server loads them; files from
+another kernel, or that fail to load, are deleted. <code>DELETE /api/docs/:id</code> removes them.</p>
+<h3 id="references"><a class="anchor" href="#references" aria-hidden="true">#</a>References</h3>
+<p>What the viewer copies when the person picks something, and what <code>inspect</code> resolves:</p>
+<ul><li><code>&lt;id&gt;</code> — the document</li><li><code>&lt;id&gt;#&lt;part path&gt;</code> — a part</li><li><code>&lt;id&gt;#&lt;part path&gt;/face &lt;n&gt;</code> — a face (0-based index, kernel order)</li><li><code>&lt;id&gt;#&lt;part path&gt;/edge &lt;n&gt;</code> — an edge</li></ul>
+<p>Grammar (shared fixture: <code>tests/fixtures/refs.json</code>, read by the Rust and the viewer tests):</p>
+<ul><li>Face and edge numbers are <strong>0-based</strong>, in kernel order (the same order as <code>faceRanges</code>/<code>edgeRanges</code>).</li><li>A part path is labels joined by <code>/</code>. A label containing <code>/</code>, <code>#</code>, <code>,</code>, <code>&quot;</code> or <code>\</code>, or with<p>leading/trailing whitespace, is written in double quotes with <code>\&quot;</code> and <code>\\</code> escaped:
+<code>&lt;id&gt;#&quot;a/b&quot;/face 2</code>, <code>&lt;id&gt;#arm/&quot;link, left&quot;/edge 0</code>.</p></li><li>Duplicate sibling labels are made unique when the document is built: <code>link</code>, <code>link_2</code>, <code>link_3</code>.</li><li>The element suffix is <code>/face N</code> or <code>/edge N</code> with exactly one space; parsing accepts any<p>whitespace and is case-insensitive for <code>face</code>/<code>edge</code>.</p></li><li>When a part path is a prefix of another (<code>arm</code> and <code>arm/link</code>), the longest match wins.</li><li><strong>Fingerprints</strong> make a face or edge ref survive rebuilds: <code>&lt;id&gt;#bracket/face 7~0k3m9a2x4b1</code>.<p>The 11 characters after <code>~</code> (<code>0-9a-z</code> without <code>i l o u</code>, case-insensitive on input) encode
+what the face or edge looked like, relative to its part's bounding box: its surface or curve
+type, its direction (a plane's normal; an axis, sign-free), where its centre sits in the box,
+and its area or length against the box's diagonal. Copy refs with them: <code>MeshPayload</code> (and
+mesh.bin) carry <code>faceFingerprints</code> / <code>edgeFingerprints</code> per part, index for index, and
+<code>inspect</code> returns <code>stable_ref</code>.</p></li><li>Resolving a fingerprinted ref:<ul><li>The index still matching its fingerprint is the answer.</li><li>Otherwise every face (edge) of the part is scored against the fingerprint. The best one is<p>used when it scores at least 75 % and leads the runner-up by 8 points; <code>inspect</code> then adds
+<code>resolved: { index, moved_from, confidence }</code>.</p></li><li>A ref that matches nothing (&quot;no longer exists… pick it again&quot;), matches only poorly, or<p>matches two faces nearly equally (&quot;ambiguous now: face 3 (90 %) and face 9 (88 %)&quot;) is
+refused, naming the candidates. It is never silently re-pointed.</p></li><li>Refs without a fingerprint resolve by index, as before.</li></ul></li></ul>
+<p><code>Inspect</code> without a ref returns the <code>Doc</code>. With a ref it returns
+<code>{ ref, part: PartInfo, face?: FaceInfo, edge?: EdgeInfo, made_by: { op, src }[] }</code> where
+<code>made_by</code> lists the ops in the part's history, newest first, with their source lines.</p>
+<h3 id="snapshot"><a class="anchor" href="#snapshot" aria-hidden="true">#</a>Snapshot</h3>
+<p><code>camera</code>: <code>iso</code> (default), <code>front</code>, <code>back</code>, <code>left</code>, <code>right</code>, <code>top</code>, <code>bottom</code>, or <code>[x,y,z]</code> view
+direction toward the camera. <code>display</code>: <code>shaded</code> (default, with edges), <code>wireframe</code>,
+<code>hidden-line</code>. Rendered in Rust by a software rasteriser; default 1024×768.</p>
+<h2 id="mechanisms"><a class="anchor" href="#mechanisms" aria-hidden="true">#</a>Mechanisms</h2>
+<p>A model's joints and poses (docs/ir.md &quot;Joints&quot;) come back resolved to part paths:</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> JointInfo = {
+  name: string;                     <span class="t-c">// unique in the document</span>
+  <span class="t-k">type</span>: <span class="t-s">"revolute"</span> | <span class="t-s">"prismatic"</span> | <span class="t-s">"fixed"</span>;
+  unit: <span class="t-s">"deg"</span> | <span class="t-s">"mm"</span> | <span class="t-k">null</span>;
+  parent: string; child: string;    <span class="t-c">// paths (a part's, or an assembly's)</span>
+  axis: { origin: V3; dir: V3 } | <span class="t-k">null</span>;   <span class="t-c">// document coordinates as built; dir unit length</span>
+  limits: { min: number; max: number } | <span class="t-k">null</span>;
+  <span class="t-k">default</span>: number;                  <span class="t-c">// as-built value</span>
+  moves: string[];                  <span class="t-c">// every part path it moves (its child and all that rides on it)</span>
+  after: string | <span class="t-k">null</span>;             <span class="t-c">// the joint it rides on (moves this joint's axis), if any</span>
+  group: string | <span class="t-k">null</span>;             <span class="t-c">// the cylindrical/ball joint this is a degree of freedom of</span>
+  follows: { joint: string; ratio: number; offset: number } | <span class="t-k">null</span>;  <span class="t-c">// coupled: value = offset + ratio * value(joint)</span>
+};
+<span class="t-k">type</span> Pose = string;                 <span class="t-c">// a pose's name, or JSON joint values: '{"lid": 45}' (the rest as built)</span></code></pre>
+<p><code>Doc.joints</code> are in chain order: every joint after the one it rides on.</p>
+<p><strong>Posing</strong> (forward kinematics, what the viewer does client-side): with <code>values[j]</code> each joint's
+value (its <code>default</code> where not set; a joint with <code>follows</code> set to <code>offset + ratio * values[leader]</code>,
+leaders first), give each joint a matrix in chain order,
+<code>M[j] = M[after(j)] · L_j(values[j] - default_j)</code> (<code>M[null] = I</code>), where <code>L</code> is the rotation by that
+many degrees about <code>axis</code> (right-handed about <code>dir</code>, through <code>origin</code>) or the translation by that
+many mm along <code>dir</code>. A part's placement is <code>M</code> of the <strong>last</strong> joint in chain order whose <code>moves</code>
+holds it (identity if none). Applied to the as-built mesh, that is the posed part. Values outside
+<code>limits</code> are refused everywhere a pose is accepted.</p>
+<p><code>pose</code> on snapshot and interference poses the document first; an unknown pose or joint, a fixed
+joint given a value or a value out of limits is a 400 naming it.</p>
+<h3 id="ranges"><a class="anchor" href="#ranges" aria-hidden="true">#</a>Ranges</h3>
+<p>Joint stops found from the geometry: each revolute or prismatic joint is moved alone from as built
+(the others as built) <code>step</code> (degrees or mm) at a time each way, a full turn for a revolute and the
+document's extent for a slide, until a part it moves meets a part of the link that holds it; the
+meeting is then bisected between samples. Nothing is changed: write the stops into the joint's
+<code>limits</code>.</p>
+<ul><li><strong>Meets</strong>: parts apart as built meet where their surfaces come within <code>clearance</code>. Parts within<p><code>clearance</code> as built (a lid on its box, a carriage on its rail, a pin in its bore) are <code>resting</code>:
+they meet only where their shared volume grows by over 0.1 mm³ (one pushed into the other), never by
+sliding along each other.</p></li><li><strong>Near a turn's axis</strong> a millimetre is a wide angle: on a revolute, a gap within <code>clearance</code> counts<p>only where the parts would touch within 5.73° more turning (a gap under a tenth of its distance
+from the axis), so a lid or a door hinged on its edge stops near flat, not where its edge first
+comes near. When several parts meet at one sample, the deepest names the stop.</p></li><li><strong>Stop vs clash</strong>: a stop is the moving parts meeting the parent's link (the parts moved by exactly<p>the joints that move the parent); meeting any other part first is a <code>clash</code> of this pose, reported
+beside the stop and not a limit.</p></li></ul>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> Ranges = { clearance: number; step: number; joints: JointRange[]; warnings: string[] };
+<span class="t-k">type</span> JointRange = {
+  joint: string; <span class="t-k">type</span>: <span class="t-s">"revolute"</span> | <span class="t-s">"prismatic"</span>; unit: <span class="t-s">"deg"</span> | <span class="t-s">"mm"</span>;
+  asBuilt: number;
+  lower: number | <span class="t-k">null</span>; upper: number | <span class="t-k">null</span>;   <span class="t-c">// offsets from as built: the last clear sample each way</span>
+  range: [number, number] | <span class="t-k">null</span>;               <span class="t-c">// asBuilt + [lower, upper], the joint's own values</span>
+  lowerContact: Contact | <span class="t-k">null</span>; upperContact: Contact | <span class="t-k">null</span>;   <span class="t-c">// what stopped it</span>
+  lowerClash: Contact | <span class="t-k">null</span>; upperClash: Contact | <span class="t-k">null</span>;       <span class="t-c">// met first, not the parent's link</span>
+  resting: [string, string][];                  <span class="t-c">// (moving, still) pairs within clearance as built</span>
+  why: string;                                  <span class="t-c">// "" with both stops, else e.g. "clear all the way round"</span>
+};
+<span class="t-k">type</span> Contact = { moving: string; still: string; at: number <span class="t-c">/* bisected offset */</span>; gap: number | <span class="t-k">null</span>; overlap: number | <span class="t-k">null</span> };</code></pre>
+<p>A document with no joints is a 400 <code>no_joints: …</code>. <code>step</code> is 0.05 to 30, <code>clearance</code> 0 to 50 mm.</p>
+<h2 id="animations"><a class="anchor" href="#animations" aria-hidden="true">#</a>Animations</h2>
+<p><code>Doc.animations</code> are the IR's animations resolved: names unique in the document (<code>&lt;assembly path&gt;:&lt;name&gt;</code>
+where two assemblies share one), <code>parts</code> as part paths, pose keys as joint values by document joint
+name, <code>about</code> filled in.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> Animation = { name: string; duration: number; loop: boolean; tracks: Track[] };
+<span class="t-k">type</span> Track =
+  | { kind: <span class="t-s">"pose"</span>; keys: { t: number; value: { [joint]: number } }[]; interpolation: Interp }
+  | { kind: <span class="t-s">"translate"</span>; parts: string[]; keys: { t: number; value: V3 }[]; interpolation: Interp }
+  | { kind: <span class="t-s">"rotate"</span>; parts: string[]; axis: V3 <span class="t-c">/* unit */</span>; about: V3; keys: { t: number; value: number }[]; interpolation: Interp }
+  | { kind: <span class="t-s">"scale"</span>; parts: string[]; about: V3; keys: { t: number; value: number }[]; interpolation: Interp };
+<span class="t-k">type</span> Interp = <span class="t-s">"cubic"</span> | <span class="t-s">"linear"</span> | <span class="t-s">"step"</span>;</code></pre>
+<p><strong>Sampling</strong> at <code>t</code> (clamped to <code>0 .. duration</code>), what a player does:</p>
+<ol><li>Find the segment: keys <code>i</code>, <code>i+1</code> with <code>t_i &lt;= t &lt; t_{i+1}</code>; <code>s = (t - t_i) / (t_{i+1} - t_i)</code>, eased<p>to <code>3s² - 2s³</code> (cubic), kept (linear) or 0 (step). At or past the last key: the last key's value.
+Before the first key: a pose track takes its first key; a part track does nothing (identity).</p></li><li>Pose track: each joint <code>a + s (b - a)</code> between the keys' full values (joints a key leaves out at<p>their <code>default</code>), followers from their leaders; each part's <code>M_pose</code> by forward kinematics above.</p></li><li>Part tracks: translation offsets add; a rotation is by the interpolated degrees about <code>axis</code> through<p><code>about</code>; a scale about <code>about</code>. Kinds compose in track order.</p></li><li>A part's placement: <code>T(Σ offsets) · Rot · Sc · M_pose</code>.</li></ol>
+<p>The engine gives the same matrices (<code>animation_matrices</code>, wasm <code>animationMatrices(id, name, t)</code>), and
+every GLB export carries each animation as a glTF clip of that name (nodes named by part path; three.js
+sanitises <code>/</code> out of node names), with <code>extras: { loop, duration }</code>.</p>
+<h2 id="render"><a class="anchor" href="#render" aria-hidden="true">#</a>Render</h2>
+<p>Photoreal pictures for people (crates/cad-render): a CPU path tracer over the parts' tessellations,
+in Rust, natively on every core and in the browser engine single-threaded. Geometry is checked with a
+snapshot, never a render. <code>POST /api/docs/:id/render</code> (CLI <code>cad model render</code>, MCP <code>cad_render</code>, wasm
+<code>render</code>/<code>renderTurntable</code>) takes <code>RenderOptions</code>, every field optional:</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-k">type</span> RenderOptions = {
+  preset?: <span class="t-s">"draft"</span> | <span class="t-s">"final"</span>;      <span class="t-c">// draft: 800×600, 16 samples, 3 bounces; final: 1600×1200, 256, 6</span>
+  camera?: <span class="t-s">"iso"</span> | <span class="t-s">"front"</span> | <span class="t-s">"back"</span> | <span class="t-s">"left"</span> | <span class="t-s">"right"</span> | <span class="t-s">"top"</span> | <span class="t-s">"bottom"</span> | [x, y, z];   <span class="t-c">// toward the camera</span>
+  lens?: number;                   <span class="t-c">// mm on a 36 mm sensor (50)</span>
+  fit?: number;                    <span class="t-c">// 1: the bounding box's corners touch the frame (1.15)</span>
+  fstop?: number;                  <span class="t-c">// depth of field, focused on the model's centre; scene units are mm: small parts blur a lot</span>
+  width?: number; height?: number; <span class="t-c">// height defaults to 3/4 of width</span>
+  samples?: number; bounces?: number;
+  environment?: <span class="t-s">"studio"</span> | <span class="t-s">"sky"</span> | <span class="t-s">"white"</span> | <span class="t-s">"dark"</span>;   <span class="t-c">// lights sit relative to the camera's heading</span>
+  intensity?: number; exposure?: number;               <span class="t-c">// light multiplier; stops</span>
+  ground?: <span class="t-s">"shadow"</span> | <span class="t-s">"plane"</span> | <span class="t-s">"none"</span>;                <span class="t-c">// shadow: a shadow catcher; plane: a visible floor</span>
+  groundColor?: string;                                <span class="t-c">// "#rrggbb" of the floor</span>
+  background?: <span class="t-s">"environment"</span> | <span class="t-s">"transparent"</span> | <span class="t-s">"white"</span> | <span class="t-s">"black"</span> | string;   <span class="t-c">// "#rrggbb"</span>
+  pose?: string;                   <span class="t-c">// a pose name or JSON joint values</span>
+  animation?: string; time?: number;   <span class="t-c">// the model `time` seconds into an animation (not with pose)</span>
+  denoise?: boolean;               <span class="t-c">// edge-aware à-trous (on)</span>
+  part?: string;                   <span class="t-c">// only this part or the parts under this path</span>
+  seed?: number;                   <span class="t-c">// the same options give the same image</span>
+};
+<span class="t-k">type</span> Turntable = { frames?: <span class="t-n">24</span>; degrees?: <span class="t-n">360</span>; fps?: <span class="t-n">12</span>; animate?: boolean };  <span class="t-c">// animate: play `animation` over the turn</span></code></pre>
+<ul><li>Materials come from each part's material and colour: aluminium, steel, stainless, titanium, brass,<p>bronze, copper, gold and chrome are metals (a colour tints them: anodised); PLA, PETG, ABS, nylon,
+PC… are plastics; rubber/TPU matte; oak/pine/plywood wood-toned; glass (and uncoloured acrylic/PC)
+refracts. No material: a plastic in the part's colour.</p></li><li>Out: PNG RGBA (straight alpha; with a transparent background the ground shadow lives in alpha), a<p>looping GIF for a turntable, or one PNG per frame.</p></li><li>A render is deterministic: one seed, one image, whatever the thread count.</li></ul>
+<p>The request body is <code>RenderOptions</code> plus <code>out</code> (an absolute path) and <code>turntable</code>. Without <code>out</code> the
+reply carries the image: <code>{ png }</code> (base64), or <code>{ gif }</code> for a turntable. With <code>out</code>: a <code>.png</code>
+(or <code>.gif</code> for a turntable), or for a turntable a folder (<code>frame_000.png</code>…) or a name with <code>%0Nd</code>
+(<code>spin_%03d.png</code>). The reply always has <code>{ written, width, height, samples, frames, seconds }</code>.
+<code>camera</code> also takes <code>&quot;AZ:EL&quot;</code> as snapshots do. A bad option is a 400 naming it.</p>
+<h2 id="circuit-boards"><a class="anchor" href="#circuit-boards" aria-hidden="true">#</a>Circuit boards</h2>
+<p><code>POST /api/pcb/{op}</code> runs <code>cad pcb</code> (crates/cad-pcb; KiCad's <code>kicad-cli</code> for all but <code>inspect</code>):
+<code>inspect {file}</code>, <code>erc {file}</code>, <code>drc {file, parity?, refill?}</code>, <code>export {file, kinds, out?}</code> (kinds:
+gerbers, drill, pos, bom, pdf, sch-pdf, svg, step, netlist), <code>step {file, out?}</code>,
+<code>write {design, dir, fill?}</code>, <code>route {file, out?, options?}</code> (the router's settings, e.g.
+<code>{&quot;width&quot;: 0.25, &quot;nets&quot;: [&quot;SDA&quot;]}</code>). Paths are absolute. The reply is the command's JSON plus <code>exit</code> (0 done,
+1 ERC/DRC errors); a file or KiCad that cannot be read or run is a 400. A board's STEP opens as a
+document (<code>POST /api/open</code>), which <code>cad pcb step</code> does for you.</p>
+<h2 id="viewer-routes"><a class="anchor" href="#viewer-routes" aria-hidden="true">#</a>Viewer routes</h2>
+<ul><li><code>/</code> — document list</li><li><code>/view/:id</code> — one document, live (reconnects to <code>/api/events</code>, refetches mesh on <code>doc</code> events)</li><li><code>/assets/*</code> — the built viewer</li></ul><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/docs/api.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#documents">Documents</a></li><li class="l3"><a href="#mesh-payload">Mesh payload</a></li><li class="l3"><a href="#binary-mesh">Binary mesh</a></li><li class="l3"><a href="#drawings">Drawings</a></li><li class="l3"><a href="#fea-stress-checks">FEA (stress checks)</a></li><li class="l3"><a href="#persistence">Persistence</a></li><li class="l3"><a href="#references">References</a></li><li class="l3"><a href="#snapshot">Snapshot</a></li><li class="l2"><a href="#mechanisms">Mechanisms</a></li><li class="l3"><a href="#ranges">Ranges</a></li><li class="l2"><a href="#animations">Animations</a></li><li class="l2"><a href="#render">Render</a></li><li class="l2"><a href="#circuit-boards">Circuit boards</a></li><li class="l2"><a href="#viewer-routes">Viewer routes</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

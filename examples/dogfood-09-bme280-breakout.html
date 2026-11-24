@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>09-bme280-breakout · text-to-cad</title>
+<meta name="description" content="A BME280 sensor breakout: the sensor in I2C mode (CSB high, SDO low: address 0x76), 4.7k pull-ups on SDA and SCL, 100n decoupling, a 4-pin 2.54 mm header (3V3, GND, SDA, SCL). 20 x 16 mm, two layers: signals and 3V3 on top, SDA and SCL dropping through vias to reach the header on the bottom, GND poured on the bottom and stitched up to the sensor's ground pads. Needs KiCad 9 or newer installed. Run: cad run examples/dogfood/09-bme280-breakout.ts   (writes out/bme280/, checks it, shows it)">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="index.html">Examples</a><a href="../gallery/index.html" aria-current="page">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Examples</h4><ul><li><a href="index.html">All examples</a></li><li><a href="arm.html">arm</a></li><li><a href="blinky_pcb.html">blinky_pcb</a></li><li><a href="bracket.html">bracket</a></li><li><a href="enclosure.html">enclosure</a></li><li><a href="esp32_pcb.html">esp32_pcb</a></li><li><a href="fasteners.html">fasteners</a></li><li><a href="gear.html">gear</a></li><li><a href="gear_train.html">gear_train</a></li><li><a href="hinge_box.html">hinge_box</a></li><li><a href="knob.html">knob</a></li><li><a href="plate.html">plate</a></li><li><a href="spring.html">spring</a></li></ul></div><div class="group"><h4>Gallery</h4><ul><li><a href="../gallery/index.html">Prompts → models</a></li><li><a href="dogfood-01-nema17-mount.html">01-nema17-mount</a></li><li><a href="dogfood-02-pipe-tee.html">02-pipe-tee</a></li><li><a href="dogfood-03-phone-stand.html">03-phone-stand</a></li><li><a href="dogfood-04-desk-tray.html">04-desk-tray</a></li><li><a href="dogfood-05-sprocket.html">05-sprocket</a></li><li><a href="dogfood-06-living-hinge-box.html">06-living-hinge-box</a></li><li><a href="dogfood-07-sheet-bracket.html">07-sheet-bracket</a></li><li><a href="dogfood-08-gripper.html">08-gripper</a></li><li class="current"><a href="dogfood-09-bme280-breakout.html">09-bme280-breakout</a></li><li><a href="dogfood-10-printed-bolt.html">10-printed-bolt</a></li></ul></div></aside><main><h1 id="top">09-bme280-breakout</h1><p class="lede">A BME280 sensor breakout: the sensor in I2C mode (CSB high, SDO low: address 0x76), 4.7k pull-ups on SDA and SCL, 100n decoupling, a 4-pin 2.54 mm header (3V3, GND, SDA, SCL). 20 x 16 mm, two layers: signals and 3V3 on top, SDA and SCL dropping through vias to reach the header on the bottom, GND poured on the bottom and stitched up to the sensor's ground pads. Needs KiCad 9 or newer installed. Run: cad run examples/dogfood/09-bme280-breakout.ts   (writes out/bme280/, checks it, shows it)</p><div class="actions"><a class="button" href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/dogfood/09-bme280-breakout.ts">View on GitHub</a><a class="button" href="../gallery/index.html">All examples</a></div>
+<h2 id="source"><a class="anchor" href="#source" aria-hidden="true">#</a>Source</h2>
+<p>Run it with <code>cad run examples/dogfood/09-bme280-breakout.ts</code>.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// A BME280 sensor breakout: the sensor in I2C mode (CSB high, SDO low: address 0x76), 4.7k pull-ups</span>
+<span class="t-c">// on SDA and SCL, 100n decoupling, a 4-pin 2.54 mm header (3V3, GND, SDA, SCL). 20 x 16 mm, two</span>
+<span class="t-c">// layers: signals and 3V3 on top, SDA and SCL dropping through vias to reach the header on the</span>
+<span class="t-c">// bottom, GND poured on the bottom and stitched up to the sensor's ground pads.</span>
+<span class="t-c">// Needs KiCad 9 or newer installed.</span>
+<span class="t-c">// Run: cad run examples/dogfood/09-bme280-breakout.ts   (writes out/bme280/, checks it, shows it)</span>
+<span class="t-k">import</span> { importStep, model, pcb, rect } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">const</span> d = pcb.<span class="t-f">design</span>(<span class="t-s">"bme280_breakout"</span>, { title: <span class="t-s">"BME280 breakout"</span> });
+<span class="t-k">const</span> u1 = d.<span class="t-f">part</span>(<span class="t-s">"U1"</span>, { symbol: <span class="t-s">"Sensor:BME280"</span>, footprint: <span class="t-s">"Package_LGA:Bosch_LGA-8_2.5x2.5mm_P0.65mm_ClockwisePinNumbering"</span>, value: <span class="t-s">"BME280"</span>, at: [<span class="t-n">3</span>, <span class="t-n">0</span>] });
+<span class="t-k">const</span> j1 = d.<span class="t-f">part</span>(<span class="t-s">"J1"</span>, { symbol: <span class="t-s">"Connector_Generic:Conn_01x04"</span>, footprint: <span class="t-s">"Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"</span>, value: <span class="t-s">"I2C"</span>, at: [-<span class="t-n">7</span>, <span class="t-n">3.81</span>] });
+<span class="t-c">// pull-ups straight above the sensor's SDA and SCL pads, 3V3 at their top</span>
+<span class="t-k">const</span> r2 = d.<span class="t-f">part</span>(<span class="t-s">"R2"</span>, { symbol: <span class="t-s">"Device:R"</span>, footprint: <span class="t-s">"Resistor_SMD:R_0603_1608Metric"</span>, value: <span class="t-s">"4k7"</span>, at: [<span class="t-n">3.325</span>, <span class="t-n">4.2</span>], rotation: -<span class="t-n">90</span> });
+<span class="t-k">const</span> r1 = d.<span class="t-f">part</span>(<span class="t-s">"R1"</span>, { symbol: <span class="t-s">"Device:R"</span>, footprint: <span class="t-s">"Resistor_SMD:R_0603_1608Metric"</span>, value: <span class="t-s">"4k7"</span>, at: [<span class="t-n">5</span>, <span class="t-n">4.2</span>], rotation: -<span class="t-n">90</span> });
+<span class="t-k">const</span> c1 = d.<span class="t-f">part</span>(<span class="t-s">"C1"</span>, { symbol: <span class="t-s">"Device:C"</span>, footprint: <span class="t-s">"Capacitor_SMD:C_0603_1608Metric"</span>, value: <span class="t-s">"100n"</span>, at: [<span class="t-n">6.5</span>, <span class="t-n">0</span>], rotation: <span class="t-n">90</span> });
+
+d.<span class="t-f">net</span>(<span class="t-s">"3V3"</span>, j1.<span class="t-f">pin</span>(<span class="t-n">1</span>), u1.<span class="t-f">pin</span>(<span class="t-n">8</span>), u1.<span class="t-f">pin</span>(<span class="t-n">6</span>), u1.<span class="t-f">pin</span>(<span class="t-n">2</span>), r1.<span class="t-f">pin</span>(<span class="t-n">1</span>), r2.<span class="t-f">pin</span>(<span class="t-n">1</span>), c1.<span class="t-f">pin</span>(<span class="t-n">1</span>));
+d.<span class="t-f">net</span>(<span class="t-s">"GND"</span>, j1.<span class="t-f">pin</span>(<span class="t-n">2</span>), u1.<span class="t-f">pin</span>(<span class="t-n">1</span>), u1.<span class="t-f">pin</span>(<span class="t-n">7</span>), u1.<span class="t-f">pin</span>(<span class="t-n">5</span>), c1.<span class="t-f">pin</span>(<span class="t-n">2</span>));
+d.<span class="t-f">net</span>(<span class="t-s">"SDA"</span>, j1.<span class="t-f">pin</span>(<span class="t-n">3</span>), u1.<span class="t-f">pin</span>(<span class="t-n">3</span>), r2.<span class="t-f">pin</span>(<span class="t-n">2</span>));
+d.<span class="t-f">net</span>(<span class="t-s">"SCL"</span>, j1.<span class="t-f">pin</span>(<span class="t-n">4</span>), u1.<span class="t-f">pin</span>(<span class="t-n">4</span>), r1.<span class="t-f">pin</span>(<span class="t-n">2</span>));
+d.<span class="t-f">outline</span>(<span class="t-f">rect</span>(<span class="t-n">20</span>, <span class="t-n">16</span>, { radius: <span class="t-n">1.5</span> }));
+
+<span class="t-c">// Tracks start and end on pins (`u1.pin(3)`), which stand for their pads' centres; the corners</span>
+<span class="t-c">// between are design coordinates (mm, y up from the board's centre). `files.pads` lists every pad.</span>
+<span class="t-k">const</span> sig = { width: <span class="t-n">0.2</span> }, pwr = { width: <span class="t-n">0.25</span> };
+<span class="t-c">// 3V3: a rail along the pull-ups' tops to the header, the sensor's three supply pads, C1</span>
+d.<span class="t-f">track</span>(<span class="t-s">"3V3"</span>, [j1.<span class="t-f">pin</span>(<span class="t-n">1</span>), [-<span class="t-n">5.5</span>, <span class="t-n">5.025</span>], r1.<span class="t-f">pin</span>(<span class="t-n">1</span>)], pwr);              <span class="t-c">// passes R2.1 on the way</span>
+d.<span class="t-f">track</span>(<span class="t-s">"3V3"</span>, [u1.<span class="t-f">pin</span>(<span class="t-n">2</span>), [<span class="t-n">2.675</span>, <span class="t-n">2.55</span>], [<span class="t-n">1.2</span>, <span class="t-n">2.55</span>]], sig);           <span class="t-c">// clear of R2's pad (DRC: 0.075 mm when it ran straight up)</span>
+d.<span class="t-f">track</span>(<span class="t-s">"3V3"</span>, [[<span class="t-n">1.2</span>, <span class="t-n">5.025</span>], [<span class="t-n">1.2</span>, -<span class="t-n">2.8</span>], [<span class="t-n">6.5</span>, -<span class="t-n">2.8</span>], c1.<span class="t-f">pin</span>(<span class="t-n">1</span>)], pwr);
+d.<span class="t-f">track</span>(<span class="t-s">"3V3"</span>, [u1.<span class="t-f">pin</span>(<span class="t-n">8</span>), [<span class="t-n">2.025</span>, -<span class="t-n">2.8</span>]], sig);
+d.<span class="t-f">track</span>(<span class="t-s">"3V3"</span>, [u1.<span class="t-f">pin</span>(<span class="t-n">6</span>), [<span class="t-n">3.325</span>, -<span class="t-n">2.8</span>]], sig);
+<span class="t-c">// SDA and SCL: up to the pull-ups on top, then down through vias to the header on the bottom</span>
+d.<span class="t-f">track</span>(<span class="t-s">"SDA"</span>, [u1.<span class="t-f">pin</span>(<span class="t-n">3</span>), r2.<span class="t-f">pin</span>(<span class="t-n">2</span>)], sig);
+d.<span class="t-f">via</span>(<span class="t-s">"SDA"</span>, [<span class="t-n">3.325</span>, <span class="t-n">2.6</span>]);
+d.<span class="t-f">track</span>(<span class="t-s">"SDA"</span>, [[<span class="t-n">3.325</span>, <span class="t-n">2.6</span>], [<span class="t-n">0.3</span>, <span class="t-n">2.6</span>], [<span class="t-n">0.3</span>, -<span class="t-n">1.27</span>], j1.<span class="t-f">pin</span>(<span class="t-n">3</span>)], { ...sig, layer: <span class="t-s">"B.Cu"</span> });
+d.<span class="t-f">track</span>(<span class="t-s">"SCL"</span>, [u1.<span class="t-f">pin</span>(<span class="t-n">4</span>), [<span class="t-n">3.975</span>, <span class="t-n">2.2</span>], [<span class="t-n">5</span>, <span class="t-n">2.2</span>], r1.<span class="t-f">pin</span>(<span class="t-n">2</span>)], sig);
+d.<span class="t-f">via</span>(<span class="t-s">"SCL"</span>, [<span class="t-n">5</span>, <span class="t-n">2.2</span>]);
+d.<span class="t-f">track</span>(<span class="t-s">"SCL"</span>, [[<span class="t-n">5</span>, <span class="t-n">2.2</span>], [<span class="t-n">5</span>, -<span class="t-n">3.4</span>], [-<span class="t-n">5.6</span>, -<span class="t-n">3.4</span>], j1.<span class="t-f">pin</span>(<span class="t-n">4</span>)], { ...sig, layer: <span class="t-s">"B.Cu"</span> });
+<span class="t-c">// GND: the bottom pour, and a via beside each ground pad on top</span>
+d.<span class="t-f">zone</span>(<span class="t-s">"GND"</span>, { layer: <span class="t-s">"B.Cu"</span> });
+<span class="t-k">for</span> (<span class="t-k">const</span> [pin, via] <span class="t-k">of</span> [[u1.<span class="t-f">pin</span>(<span class="t-n">1</span>), [<span class="t-n">2.025</span>, <span class="t-n">1.9</span>]], [u1.<span class="t-f">pin</span>(<span class="t-n">7</span>), [<span class="t-n">2.675</span>, -<span class="t-n">1.9</span>]], [u1.<span class="t-f">pin</span>(<span class="t-n">5</span>), [<span class="t-n">3.975</span>, -<span class="t-n">1.9</span>]], [c1.<span class="t-f">pin</span>(<span class="t-n">2</span>), [<span class="t-n">6.5</span>, <span class="t-n">1.9</span>]]] <span class="t-k">as</span> <span class="t-k">const</span>) {
+  d.<span class="t-f">track</span>(<span class="t-s">"GND"</span>, [pin, [via[<span class="t-n">0</span>], via[<span class="t-n">1</span>]]], sig);
+  d.<span class="t-f">via</span>(<span class="t-s">"GND"</span>, [via[<span class="t-n">0</span>], via[<span class="t-n">1</span>]]);
+}
+
+<span class="t-k">const</span> files = <span class="t-k">await</span> d.<span class="t-f">write</span>(<span class="t-s">"out/bme280"</span>, { fill: <span class="t-k">true</span> });
+<span class="t-k">for</span> (<span class="t-k">const</span> n <span class="t-k">of</span> files.notes) console.<span class="t-f">log</span>(<span class="t-s">"note:"</span>, n);
+<span class="t-k">const</span> at = (pin: string) =&gt; files.pads[pin]!.<span class="t-f">map</span>((v) =&gt; v.<span class="t-f">toFixed</span>(<span class="t-n">3</span>)).<span class="t-f">join</span>(<span class="t-s">", "</span>);
+console.<span class="t-f">log</span>(<span class="t-s">`SDA runs from U1.3 (${at("U1.3")}) to J1.3 (${at("J1.3")})`</span>);
+<span class="t-k">const</span> erc = <span class="t-k">await</span> pcb.<span class="t-f">erc</span>(files.schematic);
+<span class="t-k">const</span> drc = <span class="t-k">await</span> pcb.<span class="t-f">drc</span>(files.board, { parity: <span class="t-k">true</span> });
+<span class="t-k">for</span> (<span class="t-k">const</span> f <span class="t-k">of</span> [...erc.findings, ...drc.findings]) console.<span class="t-f">log</span>(<span class="t-s">`${f.severity}: ${f.rule}: ${f.message} ${f.refs.join(" ")}`</span>);
+console.<span class="t-f">log</span>(<span class="t-s">`ERC ${erc.errors} error(s), DRC ${drc.errors} error(s)`</span>);
+<span class="t-k">const</span> stepFile = <span class="t-k">await</span> pcb.<span class="t-f">step</span>(files.board);
+<span class="t-k">await</span> <span class="t-f">model</span>(<span class="t-s">"bme280_board"</span>, () =&gt; <span class="t-f">importStep</span>(stepFile))();
+</code></pre><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/dogfood/09-bme280-breakout.ts">Source of this page</a></p></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

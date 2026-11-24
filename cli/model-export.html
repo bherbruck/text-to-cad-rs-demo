@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cad model export · text-to-cad</title>
+<meta name="description" content="Write files by suffix: .step .stl .3mf .glb .obj .dxf .brep">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="../examples/index.html">Examples</a><a href="../gallery/index.html">Gallery</a><a href="index.html" aria-current="page">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="../examples/index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>CLI</h4><ul><li><a href="index.html">CLI reference</a></li><li><a href="cad.html">cad</a></li><li><a href="server.html">cad server</a></li><li><a href="server-start.html">cad server start</a></li><li><a href="server-status.html">cad server status</a></li><li><a href="server-stop.html">cad server stop</a></li><li><a href="init.html">cad init</a></li><li><a href="run.html">cad run</a></li><li><a href="model.html">cad model</a></li><li><a href="model-list.html">cad model list</a></li><li><a href="model-inspect.html">cad model inspect</a></li><li class="current"><a href="model-export.html">cad model export</a></li><li><a href="model-snapshot.html">cad model snapshot</a></li><li><a href="model-interference.html">cad model interference</a></li><li><a href="model-bom.html">cad model bom</a></li><li><a href="model-dfm.html">cad model dfm</a></li><li><a href="model-fea.html">cad model fea</a></li><li><a href="model-render.html">cad model render</a></li><li><a href="model-ranges.html">cad model ranges</a></li><li><a href="viewer.html">cad viewer</a></li><li><a href="step.html">cad step</a></li><li><a href="step-dfm.html">cad step dfm</a></li><li><a href="mcp.html">cad mcp</a></li><li><a href="pcb.html">cad pcb</a></li><li><a href="urdf.html">cad urdf</a></li><li><a href="urdf-validate.html">cad urdf validate</a></li><li><a href="srdf.html">cad srdf</a></li><li><a href="srdf-validate.html">cad srdf validate</a></li><li><a href="mujoco.html">cad mujoco</a></li><li><a href="mujoco-check.html">cad mujoco check</a></li></ul></div></aside><main><p class="crumbs"><a href="cad.html">cad</a> › <a href="model.html">cad model</a></p><h1 id="top"><code>cad model export</code></h1><p class="lede">Write files by suffix: .step .stl .3mf .glb .obj .dxf .brep</p><pre class="code help" data-lang="text"><code>Write files by suffix: .step .stl .3mf .glb .obj .dxf .brep
+
+Usage: cad model export [OPTIONS] &lt;ID&gt; &lt;FILES&gt;...
+
+Arguments:
+  &lt;ID&gt;        
+  &lt;FILES&gt;...  
+
+Options:
+      --tolerance &lt;TOLERANCE&gt;
+          Mesh chord tolerance in mm (mesh formats only)
+      --angle &lt;ANGLE&gt;
+          Mesh angle in degrees (mesh formats only)
+      --package &lt;PACKAGE&gt;
+          Robot descriptions (.urdf): name meshes package://NAME/meshes/... for ROS
+      --sheet &lt;SHEET&gt;
+          Drawings: sheet A4, A3, A2, A1 or A0 (landscape)
+      --projection &lt;PROJECTION&gt;
+          Drawings: third or first angle projection
+      --views &lt;VIEWS&gt;
+          Drawings: views, comma-separated (front top right left bottom back iso)
+      --scale &lt;SCALE&gt;
+          Drawings: scale (0.5 = 1:2)
+      --title &lt;TITLE&gt;
+          Drawings: title
+      --part-number &lt;PART_NUMBER&gt;
+          Drawings: part number
+      --material &lt;MATERIAL&gt;
+          Drawings: material
+      --revision &lt;REVISION&gt;
+          Drawings: revision
+      --author &lt;AUTHOR&gt;
+          Drawings: drawn by
+      --date &lt;DATE&gt;
+          Drawings: the date in the title block (default today)
+      --note &lt;NOTES&gt;
+          Drawings: a numbered note (repeatable)
+      --general-tolerance &lt;GENERAL_TOLERANCE&gt;
+          Drawings: general tolerance, e.g. &quot;ISO 2768-m&quot;
+      --no-hidden
+          Drawings: no hidden lines
+      --no-dimensions
+          Drawings: no dimensions
+      --part &lt;PART&gt;
+          Drawings: only this part (its path)
+      --json
+          Print JSON
+  -h, --help
+          Print help</code></pre></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

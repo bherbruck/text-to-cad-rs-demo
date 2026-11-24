@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>spring · text-to-cad</title>
+<meta name="description" content="Sweeps and lofts: a coil spring (a circle swept along a helix) and a square-to-round duct transition (a loft, shelled open at both ends). Run: cad run examples/spring.ts">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="index.html" aria-current="page">Examples</a><a href="../gallery/index.html">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Examples</h4><ul><li><a href="index.html">All examples</a></li><li><a href="arm.html">arm</a></li><li><a href="blinky_pcb.html">blinky_pcb</a></li><li><a href="bracket.html">bracket</a></li><li><a href="enclosure.html">enclosure</a></li><li><a href="esp32_pcb.html">esp32_pcb</a></li><li><a href="fasteners.html">fasteners</a></li><li><a href="gear.html">gear</a></li><li><a href="gear_train.html">gear_train</a></li><li><a href="hinge_box.html">hinge_box</a></li><li><a href="knob.html">knob</a></li><li><a href="plate.html">plate</a></li><li class="current"><a href="spring.html">spring</a></li></ul></div><div class="group"><h4>Gallery</h4><ul><li><a href="../gallery/index.html">Prompts → models</a></li><li><a href="dogfood-01-nema17-mount.html">01-nema17-mount</a></li><li><a href="dogfood-02-pipe-tee.html">02-pipe-tee</a></li><li><a href="dogfood-03-phone-stand.html">03-phone-stand</a></li><li><a href="dogfood-04-desk-tray.html">04-desk-tray</a></li><li><a href="dogfood-05-sprocket.html">05-sprocket</a></li><li><a href="dogfood-06-living-hinge-box.html">06-living-hinge-box</a></li><li><a href="dogfood-07-sheet-bracket.html">07-sheet-bracket</a></li><li><a href="dogfood-08-gripper.html">08-gripper</a></li><li><a href="dogfood-09-bme280-breakout.html">09-bme280-breakout</a></li><li><a href="dogfood-10-printed-bolt.html">10-printed-bolt</a></li></ul></div></aside><main><h1 id="top">spring</h1><p class="lede">Sweeps and lofts: a coil spring (a circle swept along a helix) and a square-to-round duct transition (a loft, shelled open at both ends). Run: cad run examples/spring.ts</p><div class="actions"><a class="button primary" href="../play/index.html#code=Ly8gU3dlZXBzIGFuZCBsb2Z0czogYSBjb2lsIHNwcmluZyAoYSBjaXJjbGUgc3dlcHQgYWxvbmcgYSBoZWxpeCkgYW5kIGEKLy8gc3F1YXJlLXRvLXJvdW5kIGR1Y3QgdHJhbnNpdGlvbiAoYSBsb2Z0LCBzaGVsbGVkIG9wZW4gYXQgYm90aCBlbmRzKS4KLy8gUnVuOiBjYWQgcnVuIGV4YW1wbGVzL3NwcmluZy50cwppbXBvcnQgeyBQbGFuZSwgY2lyY2xlLCBoZWxpeCwgbG9mdCwgbW9kZWwsIHBhcmFtLCByZWN0IH0gZnJvbSAiQGNhZC9zZGsiOwoKZXhwb3J0IGNvbnN0IHNwcmluZyA9IG1vZGVsKCJzcHJpbmciLCAoKSA9PiB7CiAgY29uc3QgY29pbCA9IHBhcmFtKCJjb2lsX3JhZGl1cyIsIDEwLCB7IG1pbjogMywgbWF4OiA0MCwgdW5pdDogIm1tIiB9KTsKICBjb25zdCB3aXJlID0gcGFyYW0oIndpcmUiLCAxLjIsIHsgbWluOiAwLjMsIG1heDogNCwgc3RlcDogMC4xLCB1bml0OiAibW0iLCBkZXNjcmlwdGlvbjogIndpcmUgZGlhbWV0ZXIiIH0pOwogIGNvbnN0IHBpdGNoID0gcGFyYW0oInBpdGNoIiwgNCwgeyBtaW46IDEsIG1heDogMTUsIHN0ZXA6IDAuNSwgdW5pdDogIm1tIiB9KTsKICBjb25zdCBsZW5ndGggPSBwYXJhbSgibGVuZ3RoIiwgNDAsIHsgbWluOiA1LCBtYXg6IDIwMCwgdW5pdDogIm1tIiB9KTsKCiAgLy8gVGhlIGhlbGl4IHN0YXJ0cyBhdCBbY29pbCwgMCwgMF0gaGVhZGluZyArWSBhbmQgY2xpbWJpbmcgcGl0Y2ggcGVyIHR1cm46IHB1dCB0aGUgd2lyZSdzCiAgLy8gc2VjdGlvbiB0aGVyZSwgc3F1YXJlIHRvIHRoYXQgZGlyZWN0aW9uICh0aWx0ZWQgYnkgdGhlIGhlbGl4IGFuZ2xlKSwgc28gdGhlIHN3ZXB0IGVuZHMgYXJlCiAgLy8gY2xlYW4gcm91bmQgY2Fwcy4KICBjb25zdCBsZWFkID0gKE1hdGguYXRhbjIocGl0Y2gsIDIgKiBNYXRoLlBJICogY29pbCkgKiAxODApIC8gTWF0aC5QSTsKICBjb25zdCBzZWN0aW9uID0gY2lyY2xlKHdpcmUgLyAyLCB7IHBsYW5lOiBQbGFuZS5YWi5tb3ZlVG8oW2NvaWwsIDAsIDBdKSB9KQogICAgLnJvdGF0ZSh7IG9yaWdpbjogW2NvaWwsIDAsIDBdLCBkaXI6IFsxLCAwLCAwXSB9LCBsZWFkKTsKICByZXR1cm4gc2VjdGlvbgogICAgLnN3ZWVwKGhlbGl4KGNvaWwsIHBpdGNoLCBsZW5ndGgpLCB7IGJpbm9ybWFsOiAiWiIgfSkgICAvLyBiaW5vcm1hbDogbm8gdHdpc3QgYWxvbmcgYSBoZWxpeAogICAgLmxhYmVsKCJzcHJpbmciLCB7IGNvbG9yOiAiI2MwYzRjOCIsIG1hdGVyaWFsOiAic3RlZWwiIH0pOwp9KTsKCmV4cG9ydCBjb25zdCBkdWN0ID0gbW9kZWwoImR1Y3QiLCAoKSA9PiB7CiAgY29uc3Qgc2lkZSA9IDQwLCByb3VuZCA9IDE0LCByaXNlID0gNTA7CiAgY29uc3QgYm9keSA9IGxvZnQoW3JlY3Qoc2lkZSwgc2lkZSwgeyByYWRpdXM6IDQgfSksIGNpcmNsZShyb3VuZCwgeyBwbGFuZTogUGxhbmUuWFkub2Zmc2V0KHJpc2UpIH0pXSk7CiAgcmV0dXJuIGJvZHkuc2hlbGwoIj5aIG9yIDxaIiwgLTEuNikubGFiZWwoImR1Y3QiLCB7IGNvbG9yOiAiI2UwYTAzMCIsIG1hdGVyaWFsOiAicGV0ZyIgfSk7Cn0pOwoKaWYgKGltcG9ydC5tZXRhLm1haW4pIHsKICBhd2FpdCBzcHJpbmcoKTsKICBhd2FpdCBkdWN0KCk7Cn0K&name=spring">Open in playground</a><a class="button" href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/spring.ts">View on GitHub</a><a class="button" href="index.html">All examples</a></div><div class="figures"><figure><img src="../images/examples/spring-spring.png" alt="spring"><figcaption>spring</figcaption></figure><figure><img src="../images/examples/spring-duct.png" alt="duct"><figcaption>duct</figcaption></figure></div>
+<h2 id="source"><a class="anchor" href="#source" aria-hidden="true">#</a>Source</h2>
+<p>Run it with <code>cad run examples/spring.ts</code>.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// Sweeps and lofts: a coil spring (a circle swept along a helix) and a</span>
+<span class="t-c">// square-to-round duct transition (a loft, shelled open at both ends).</span>
+<span class="t-c">// Run: cad run examples/spring.ts</span>
+<span class="t-k">import</span> { Plane, circle, helix, loft, model, param, rect } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">export</span> <span class="t-k">const</span> spring = <span class="t-f">model</span>(<span class="t-s">"spring"</span>, () =&gt; {
+  <span class="t-k">const</span> coil = <span class="t-f">param</span>(<span class="t-s">"coil_radius"</span>, <span class="t-n">10</span>, { min: <span class="t-n">3</span>, max: <span class="t-n">40</span>, unit: <span class="t-s">"mm"</span> });
+  <span class="t-k">const</span> wire = <span class="t-f">param</span>(<span class="t-s">"wire"</span>, <span class="t-n">1.2</span>, { min: <span class="t-n">0.3</span>, max: <span class="t-n">4</span>, step: <span class="t-n">0.1</span>, unit: <span class="t-s">"mm"</span>, description: <span class="t-s">"wire diameter"</span> });
+  <span class="t-k">const</span> pitch = <span class="t-f">param</span>(<span class="t-s">"pitch"</span>, <span class="t-n">4</span>, { min: <span class="t-n">1</span>, max: <span class="t-n">15</span>, step: <span class="t-n">0.5</span>, unit: <span class="t-s">"mm"</span> });
+  <span class="t-k">const</span> length = <span class="t-f">param</span>(<span class="t-s">"length"</span>, <span class="t-n">40</span>, { min: <span class="t-n">5</span>, max: <span class="t-n">200</span>, unit: <span class="t-s">"mm"</span> });
+
+  <span class="t-c">// The helix starts at [coil, 0, 0] heading +Y and climbing pitch per turn: put the wire's</span>
+  <span class="t-c">// section there, square to that direction (tilted by the helix angle), so the swept ends are</span>
+  <span class="t-c">// clean round caps.</span>
+  <span class="t-k">const</span> lead = (Math.<span class="t-f">atan2</span>(pitch, <span class="t-n">2</span> * Math.PI * coil) * <span class="t-n">180</span>) / Math.PI;
+  <span class="t-k">const</span> section = <span class="t-f">circle</span>(wire / <span class="t-n">2</span>, { plane: Plane.XZ.<span class="t-f">moveTo</span>([coil, <span class="t-n">0</span>, <span class="t-n">0</span>]) })
+    .<span class="t-f">rotate</span>({ origin: [coil, <span class="t-n">0</span>, <span class="t-n">0</span>], dir: [<span class="t-n">1</span>, <span class="t-n">0</span>, <span class="t-n">0</span>] }, lead);
+  <span class="t-k">return</span> section
+    .<span class="t-f">sweep</span>(<span class="t-f">helix</span>(coil, pitch, length), { binormal: <span class="t-s">"Z"</span> })   <span class="t-c">// binormal: no twist along a helix</span>
+    .<span class="t-f">label</span>(<span class="t-s">"spring"</span>, { color: <span class="t-s">"#c0c4c8"</span>, material: <span class="t-s">"steel"</span> });
+});
+
+<span class="t-k">export</span> <span class="t-k">const</span> duct = <span class="t-f">model</span>(<span class="t-s">"duct"</span>, () =&gt; {
+  <span class="t-k">const</span> side = <span class="t-n">40</span>, round = <span class="t-n">14</span>, rise = <span class="t-n">50</span>;
+  <span class="t-k">const</span> body = <span class="t-f">loft</span>([<span class="t-f">rect</span>(side, side, { radius: <span class="t-n">4</span> }), <span class="t-f">circle</span>(round, { plane: Plane.XY.<span class="t-f">offset</span>(rise) })]);
+  <span class="t-k">return</span> body.<span class="t-f">shell</span>(<span class="t-s">"&gt;Z or &lt;Z"</span>, -<span class="t-n">1.6</span>).<span class="t-f">label</span>(<span class="t-s">"duct"</span>, { color: <span class="t-s">"#e0a030"</span>, material: <span class="t-s">"petg"</span> });
+});
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) {
+  <span class="t-k">await</span> <span class="t-f">spring</span>();
+  <span class="t-k">await</span> <span class="t-f">duct</span>();
+}
+</code></pre><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/spring.ts">Source of this page</a></p></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>

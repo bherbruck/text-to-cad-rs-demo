@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inspecting and checking models · text-to-cad</title>
+
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../../index.html"><img src="../../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../../docs/index.html">Docs</a><a href="../cad.html" aria-current="page">Skills</a><a href="../../examples/index.html">Examples</a><a href="../../gallery/index.html">Gallery</a><a href="../../cli/index.html">CLI</a><a class="play" href="../../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../../docs/index.html">Docs</a></li><li><a href="../cad.html">Skills</a></li><li><a href="../../examples/index.html">Examples</a></li><li><a href="../../gallery/index.html">Gallery</a></li><li><a href="../../cli/index.html">CLI</a></li><li><a href="../../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../cad.html">CAD modeling and inspection</a></li><li><a href="../fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../pcb.html">Circuit boards</a></li><li><a href="../render.html">Renders for people</a></li><li><a href="../robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>References</h4><ul><li><a href="drawings.html">Engineering drawings</a></li><li><a href="exports.html">Exports</a></li><li class="current"><a href="inspection-and-validation.html">Inspecting and checking models</a></li><li><a href="manufacturing-cnc.html">CNC milling</a></li><li><a href="manufacturing-injection-molding.html">Injection molding</a></li><li><a href="manufacturing-printing.html">3D printing</a></li><li><a href="manufacturing-review.html">Manufacturing checks: the result, the review, a redesign</a></li><li><a href="manufacturing-sheet-metal.html">Sheet metal</a></li><li><a href="mechanisms.html">Mechanisms: joints, poses and animations</a></li><li><a href="model-contract.html">Models</a></li><li><a href="parts.html">Standard parts</a></li><li><a href="sdk-modeling.html">@cad/sdk modeling</a></li><li><a href="selectors.html">Selectors</a></li><li><a href="snapshot-review.html">Snapshots</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="../../docs/api.html">Server API (cad server)</a></li><li><a href="../../docs/cli.html">cad command line</a></li><li><a href="../../docs/index.html">Documentation</a></li><li><a href="../../docs/install.html">Installing text-to-cad-rs</a></li><li><a href="../../docs/ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="../../docs/kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/licenses.html">Licences</a></li><li><a href="../../docs/quality-report.html">Workspace quality report</a></li><li><a href="../../docs/robots.html">Robot descriptions</a></li><li><a href="../../docs/security.html">Security and resource limits</a></li><li><a href="../../docs/test-port.html">Porting the original test suite</a></li><li><a href="../../docs/test-status.html">Test status</a></li></ul></div></aside><main><h1 id="inspecting-and-checking-models"><a class="anchor" href="#inspecting-and-checking-models" aria-hidden="true">#</a>Inspecting and checking models</h1>
+<p>Read this file when resolving a reference, measuring a model, checking clearances or overlap, or
+diagnosing a failed or wrong build. Which check a change calls for is
+<a href="../cad.html#check-each-change">Check each change</a>; this file is what the checks are made of.</p>
+<h2 id="contents"><a class="anchor" href="#contents" aria-hidden="true">#</a>Contents</h2>
+<ul><li><a href="#the-build-summary">The build summary</a></li><li><a href="#references">References</a></li><li><a href="#inspect">Inspect</a></li><li><a href="#which-code-made-it">Which code made it</a></li><li><a href="#checks-in-a-script">Checks in a script</a></li><li><a href="#interference">Interference</a></li><li><a href="#diagnosing-a-build">Diagnosing a build</a></li></ul>
+<p>The SDK builds no geometry in the script, so every number comes from the server: the summary a run
+prints, <code>cad model inspect</code>, or the handle a model call returns.</p>
+<h2 id="the-build-summary"><a class="anchor" href="#the-build-summary" aria-hidden="true">#</a>The build summary</h2>
+<pre class="code" data-lang="text"><button class="copy" type="button" aria-label="Copy">Copy</button><code>built src/bracket.ts::bracket in 0.41s: 14 ops, 9 hits, 5 misses
+  parts 1 · bounds 40 × 30 × 35 mm · volume 11872.6 mm³ · mass 32.1 g
+  warning: …
+  id: 0dc50a92-…
+  view: http://127.0.0.1:7878/view/0dc50a92-…?token=…</code></pre>
+<ul><li><strong>bounds</strong> is the overall size, X × Y × Z: the first check of any dimension the person gave.</li><li><strong>volume</strong> is the sum over parts; a hole that didn't cut shows as a volume that didn't drop.</li><li><strong>parts</strong> is the number of labelled parts (one for a single solid).</li><li><strong>warnings</strong> are the server's: read them; an invalid solid or a part that isn't one solid shows<p>up here first.</p></li></ul>
+<h2 id="references"><a class="anchor" href="#references" aria-hidden="true">#</a>References</h2>
+<p>A reference names a document, a part in it, or one face or edge of a part. It is what the viewer
+copies when the person picks something:</p>
+<pre class="code" data-lang="text"><button class="copy" type="button" aria-label="Copy">Copy</button><code>0dc50a92-a21f-5895-a245-ebdeb5352f3b                     the document
+0dc50a92-…#bracket                                       a part, by its path of labels
+0dc50a92-…#enclosure/lid                                 a part inside an assembly
+0dc50a92-…#enclosure/lid/face 4                          a face of it (0-based, kernel order)
+0dc50a92-…#bracket/edge 11                               an edge</code></pre>
+<ul><li>A part's path is the labels from the root joined by <code>/</code>; in a document of one part it is that<p>part's label. <code>cad model inspect &quot;$ID&quot;</code> takes the whole reference or just the part after <code>#</code>
+(<code>'bracket/face 4'</code>), as does a handle's <code>inspect(...)</code>.</p></li><li>Face and edge numbers are the kernel's order for the shape as last built; an edit that changes<p>the topology renumbers them. Resolve a reference against the current build, then select the
+element in code by what it is (<a href="selectors.html">selectors</a>), not by its number.</p></li></ul>
+<h2 id="inspect"><a class="anchor" href="#inspect" aria-hidden="true">#</a>Inspect</h2>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model inspect <span class="t-s">"$ID"</span>                            <span class="t-c"># parts, bounds, volume, mass, parameters</span>
+<span class="t-f">cad</span> model inspect <span class="t-s">"$ID"</span> <span class="t-s">"$ID#bracket/face 4"</span>        <span class="t-c"># one face, with made_by (JSON)</span>
+<span class="t-f">cad</span> model inspect <span class="t-s">"$ID"</span> <span class="t-s">"$ID#enclosure/lid/edge 11"</span>   <span class="t-c"># the id, '#', then the reference</span></code></pre>
+<p>With no ref it prints the document: each part's path, label, colour, material, kind (<code>solid</code>,
+<code>compound</code>, <code>shell</code>, …), volume, area, mass, centre, bounds, face and edge counts and <code>valid</code>.</p>
+<p>With a ref it returns the part, and for a face: <code>surface</code> (plane, cylinder, …), <code>area</code>, <code>center</code>,
+<code>normal</code>, <code>axis</code> and <code>radius</code> where they apply, <code>bounds</code>; for an edge: <code>curve</code> (line, circle, …),
+<code>length</code>, <code>start</code>, <code>end</code>, <code>mid</code>, <code>direction</code> for a line, <code>center</code>, <code>radius</code> and <code>normal</code> for a circle,
+<code>closed</code>, <code>bounds</code>. These are exact (from the B-rep), not mesh estimates.</p>
+<h2 id="which-code-made-it"><a class="anchor" href="#which-code-made-it" aria-hidden="true">#</a>Which code made it</h2>
+<p><code>made_by</code> lists the ops in a part's history, newest first, each with the source line that created
+it:</p>
+<pre class="code" data-lang="json"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-s">"made_by"</span>: [
+  { <span class="t-s">"op"</span>: <span class="t-s">"part"</span>, <span class="t-s">"src"</span>: <span class="t-s">"src/bracket.ts:26"</span> },
+  { <span class="t-s">"op"</span>: <span class="t-s">"cut"</span>, <span class="t-s">"src"</span>: <span class="t-s">"src/bracket.ts:25"</span> },
+  { <span class="t-s">"op"</span>: <span class="t-s">"fillet"</span>, <span class="t-s">"src"</span>: <span class="t-s">"src/bracket.ts:19"</span> },
+  { <span class="t-s">"op"</span>: <span class="t-s">"fuse"</span>, <span class="t-s">"src"</span>: <span class="t-s">"src/bracket.ts:17"</span> },
+  { <span class="t-s">"op"</span>: <span class="t-s">"box"</span>, <span class="t-s">"src"</span>: <span class="t-s">"src/bracket.ts:13"</span> }
+]</code></pre>
+<p>To act on a reference (&quot;make this hole bigger&quot;), resolve it, read the face's type and radius,
+find the op in <code>made_by</code> that made a feature of that kind and size, and edit that line.</p>
+<h2 id="checks-in-a-script"><a class="anchor" href="#checks-in-a-script" aria-hidden="true">#</a>Checks in a script</h2>
+<p>A check calls the model, then measures what the handle returns. Keep it beside the model, or in a
+<code>checks/</code> folder when it is worth keeping:</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// checks/bracket.check.ts</span>
+<span class="t-k">import</span> assert <span class="t-k">from</span> <span class="t-s">"node:assert/strict"</span>;
+<span class="t-k">import</span> { bracket } <span class="t-k">from</span> <span class="t-s">"../src/bracket.ts"</span>;
+
+<span class="t-k">const</span> h = <span class="t-k">await</span> <span class="t-f">bracket</span>();
+<span class="t-k">const</span> [min, max] = [h.result.bounds!.min, h.result.bounds!.max];
+assert.<span class="t-f">ok</span>(Math.<span class="t-f">abs</span>(max[<span class="t-n">0</span>] - min[<span class="t-n">0</span>] - <span class="t-n">40</span>) &lt; <span class="t-n">1e-6</span>, <span class="t-s">`width ${max[0] - min[0]}`</span>);
+
+<span class="t-k">const</span> doc = <span class="t-k">await</span> h.<span class="t-f">inspect</span>();
+assert.<span class="t-f">equal</span>(doc.parts.length, <span class="t-n">1</span>);
+assert.<span class="t-f">ok</span>(doc.parts.<span class="t-f">every</span>((p) =&gt; p.valid), <span class="t-s">"invalid solid"</span>);
+
+<span class="t-k">const</span> bore = <span class="t-k">await</span> h.<span class="t-f">inspect</span>(<span class="t-s">"bracket/face 9"</span>);
+assert.<span class="t-f">equal</span>(bore.face?.surface, <span class="t-s">"cylinder"</span>);
+assert.<span class="t-f">ok</span>(Math.<span class="t-f">abs</span>(bore.face!.radius! - <span class="t-n">2.75</span>) &lt; <span class="t-n">1e-6</span>, <span class="t-s">`bore radius ${bore.face!.radius}`</span>);</code></pre>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> run checks/bracket.check.ts</code></pre>
+<ul><li>A failed assert exits 1 with the message: the check failed. A check that could not run (a<p>build error, a missing face) has shown nothing.</p></li><li>Trust a check only once you have seen it fail on a planted fault of the kind it guards against<p>(set the width to 41 and run it).</p></li><li>A wall or clearance is a distance between two faces: inspect both and compare their centres<p>along the normal, or take it from the parameters that made them and check the bounds agree.</p></li></ul>
+<h2 id="interference"><a class="anchor" href="#interference" aria-hidden="true">#</a>Interference</h2>
+<pre class="code" data-lang="bash"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-f">cad</span> model interference <span class="t-s">"$ID"</span>      <span class="t-c"># exit 1 if any pair of parts shares volume</span></code></pre>
+<p>It prints each pair of parts (by path) that overlap and the shared volume; <code>await
+h.interference()</code> returns the same pairs. Parts that only touch don't count. Run it on every
+assembly after placing parts, and say in the hand-off which states (lid open or closed) were
+checked.</p>
+<h2 id="diagnosing-a-build"><a class="anchor" href="#diagnosing-a-build" aria-hidden="true">#</a>Diagnosing a build</h2>
+<div class="table"><table><thead><tr><th>Symptom</th><th>Likely cause</th><th>Look at</th></tr></thead><tbody><tr><td><code>fillet</code> / <code>chamfer</code> failed</td><td>Radius too big for an adjacent face, or the selector matched edges you didn't mean</td><td>A smaller radius; <a href="selectors.html#check-what-it-matched">check what it matched</a></td></tr><tr><td>Selector matched nothing</td><td>Wrong axis or sign; the edges are curves not lines (<code>|Z</code> only matches lines)</td><td><code>inspect</code> an edge you want</td></tr><tr><td>Volume didn't change after a cut</td><td>Tool misplaced, or coplanar with the face</td><td>Bounds of the tool; make it longer</td></tr><tr><td>Several parts where one was expected</td><td>A fuse of pieces that don't overlap (<code>kind: compound</code>)</td><td>Overlap them; check positions</td></tr><tr><td><code>valid: false</code></td><td>A self-intersecting profile, a revolve profile crossing the axis</td><td>The profile's points</td></tr><tr><td>Build error naming a line</td><td>That node failed</td><td>The line; the message says which op</td></tr></tbody></table></div><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/skills/cad/references/inspection-and-validation.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#contents">Contents</a></li><li class="l2"><a href="#the-build-summary">The build summary</a></li><li class="l2"><a href="#references">References</a></li><li class="l2"><a href="#inspect">Inspect</a></li><li class="l2"><a href="#which-code-made-it">Which code made it</a></li><li class="l2"><a href="#checks-in-a-script">Checks in a script</a></li><li class="l2"><a href="#interference">Interference</a></li><li class="l2"><a href="#diagnosing-a-build">Diagnosing a build</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../../assets/site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-root="../../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manufacturing checks: the result, the review, a redesign · text-to-cad</title>
+
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../../index.html"><img src="../../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../../docs/index.html">Docs</a><a href="../cad.html" aria-current="page">Skills</a><a href="../../examples/index.html">Examples</a><a href="../../gallery/index.html">Gallery</a><a href="../../cli/index.html">CLI</a><a class="play" href="../../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../../docs/index.html">Docs</a></li><li><a href="../cad.html">Skills</a></li><li><a href="../../examples/index.html">Examples</a></li><li><a href="../../gallery/index.html">Gallery</a></li><li><a href="../../cli/index.html">CLI</a></li><li><a href="../../play/index.html">Play</a></li></ul></div><div class="group"><h4>Skills</h4><ul><li><a href="../cad.html">CAD modeling and inspection</a></li><li><a href="../fea.html">FEA: will it hold, and how far does it move</a></li><li><a href="../pcb.html">Circuit boards</a></li><li><a href="../render.html">Renders for people</a></li><li><a href="../robot-simulation.html">Robots for simulation and motion planning</a></li></ul></div><div class="group"><h4>References</h4><ul><li><a href="drawings.html">Engineering drawings</a></li><li><a href="exports.html">Exports</a></li><li><a href="inspection-and-validation.html">Inspecting and checking models</a></li><li><a href="manufacturing-cnc.html">CNC milling</a></li><li><a href="manufacturing-injection-molding.html">Injection molding</a></li><li><a href="manufacturing-printing.html">3D printing</a></li><li class="current"><a href="manufacturing-review.html">Manufacturing checks: the result, the review, a redesign</a></li><li><a href="manufacturing-sheet-metal.html">Sheet metal</a></li><li><a href="mechanisms.html">Mechanisms: joints, poses and animations</a></li><li><a href="model-contract.html">Models</a></li><li><a href="parts.html">Standard parts</a></li><li><a href="sdk-modeling.html">@cad/sdk modeling</a></li><li><a href="selectors.html">Selectors</a></li><li><a href="snapshot-review.html">Snapshots</a></li></ul></div><div class="group"><h4>Docs</h4><ul><li><a href="../../docs/api.html">Server API (cad server)</a></li><li><a href="../../docs/cli.html">cad command line</a></li><li><a href="../../docs/index.html">Documentation</a></li><li><a href="../../docs/install.html">Installing text-to-cad-rs</a></li><li><a href="../../docs/ir.html">Model IR (TypeScript SDK → Rust engine)</a></li><li><a href="../../docs/kernel-benchmark.html">Kernel benchmark: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/kernel-parity.html">Kernel parity: OCCT, solidcore and cadrs</a></li><li><a href="../../docs/licenses.html">Licences</a></li><li><a href="../../docs/quality-report.html">Workspace quality report</a></li><li><a href="../../docs/robots.html">Robot descriptions</a></li><li><a href="../../docs/security.html">Security and resource limits</a></li><li><a href="../../docs/test-port.html">Porting the original test suite</a></li><li><a href="../../docs/test-status.html">Test status</a></li></ul></div></aside><main><h1 id="manufacturing-checks-the-result-the-review-a-redesign"><a class="anchor" href="#manufacturing-checks-the-result-the-review-a-redesign" aria-hidden="true">#</a>Manufacturing checks: the result, the review, a redesign</h1>
+<p>Read this file for a manufacturing check's result in full, a shop's own limits, a review or a
+redesign. It is what every process shares: SKILL.md's <a href="../cad.html#can-it-be-made">Can it be made?</a>
+says when a check runs, and each process's reference what is particular to it.</p>
+<h2 id="contents"><a class="anchor" href="#contents" aria-hidden="true">#</a>Contents</h2>
+<ul><li><a href="#the-check">The check</a></li><li><a href="#read-the-result">Read the result</a></li><li><a href="#a-shops-own-limits">A shop's own limits</a></li><li><a href="#the-review">The review</a></li><li><a href="#check-a-redesign">Check a redesign</a></li></ul>
+<h2 id="the-check"><a class="anchor" href="#the-check" aria-hidden="true">#</a>The check</h2>
+<p><code>cad model dfm &quot;$ID&quot; --process P [options]</code> measures the document as the last run left it, on the
+server's kernel: every part, as it stands in the model, each finding at a face or edge ref
+(<code>bracket/face 3</code>, <code>plate/edge 16</code>) that <code>cad model inspect &quot;$ID&quot; '&lt;ref&gt;'</code> resolves. Check a part by
+its own model's id where an assembly holds several; an assembly's check judges every part where it
+stands (a print's overhangs and a molding's draft turn with the part).</p>
+<p>What it measures, on any kernel: walls and gaps by rays across the material, holes and pins from
+cylindrical faces, the material's angle at every edge (knife edges, inside corners), sealed
+cavities, what a straight tool or a mold half reaches. A family it does not measure is said
+(<code>families_not_measured</code>), never passed.</p>
+<h2 id="read-the-result"><a class="anchor" href="#read-the-result" aria-hidden="true">#</a>Read the result</h2>
+<p><code>cad model dfm &quot;$ID&quot; --process cnc --tools 8,10</code>, on a plate whose pocket corners are 3 mm:</p>
+<pre class="code" data-lang="text"><button class="copy" type="button" aria-label="Copy">Copy</button><code>error: cnc.internal_corner_radius, 4 place(s). Hint: radius the corner to at least 4 mm, the smallest tool's radius, or add a smaller tool. Source: Protolabs Network (Hubs), How to design parts for CNC machining.
+  plate/face 9: internal corner radius 3 mm is under the 4 mm minimum (10 mm tall)
+  ...
+info: material_declared at bodies: material aluminum, read from the parts' declared material: give --material to judge another
+FAILED 6c29e879-…: 4 error(s), 1 warning(s); cnc 3-axis milling: 1 part(s), 42000 mm3, 2 setup(s) (+Z -Z), 1 pocket(s); failed: cnc.internal_corner_radius x4</code></pre>
+<p>A failing rule is said once, with its hint and its source, then a line for each feature at its ref;
+any other finding is one line. The last line is the check's state, and so is the exit status:</p>
+<div class="table"><table><thead><tr><th>Last line</th><th>Exit</th><th><code>status</code></th><th>It says</th></tr></thead><tbody><tr><td><code>OK &lt;id&gt;: [N warning(s); ]&lt;what was measured&gt;</code></td><td>0</td><td><code>ok</code></td><td>every part was measured and no finding is an error. Not an approval: warnings (recommendations) remain</td></tr><tr><td><code>FAILED &lt;id&gt;: E error(s)[, W warning(s)]; &lt;what&gt;; failed: &lt;code&gt; xN, ...</code></td><td>1</td><td><code>failed</code></td><td>a finding is an error: the part cannot be made by this process as drawn. With <code>--strict</code>, a warning fails too</td></tr><tr><td><code>NOT CHECKED &lt;id&gt;: &lt;code&gt; ...</code></td><td>3</td><td><code>not_checked</code></td><td>the check did not judge what it was asked to: never a pass</td></tr></tbody></table></div>
+<p>Exit 2 is the command refused (an unknown option, a value of the wrong kind, a metal for molding):
+its message says the fix, which is in the command, not the part.</p>
+<p><code>--json</code> prints the result as one line: <code>status</code>, <code>ok</code>, <code>reason</code>, <code>summary</code>, <code>findings</code> and
+<code>measurements</code>. Key on <code>status</code> or the exit, never on a finding's severity.</p>
+<ul><li><strong>Not checked.</strong> <code>not_solid</code> (a part that is no closed solid), <code>document_empty</code>,<p><code>measurement_failed</code> (a family the kernel could not measure), <code>rule_partly_judged</code> (items a rule
+had no figure for: its <code>refs</code>) and <code>rules_none_evaluated</code> (no rule has a limit for this context,
+as a technology no guide covers). A part that fails and was not wholly checked is <code>FAILED</code>, its
+line ending <code>; not checked: &lt;code&gt; xN</code>.</p></li><li><strong>Order.</strong> What puts every figure in doubt comes first: what was not checked, <code>not_sound</code> (the<p>kernel's validity check fails) and <code>units_suspect</code> (a part under 1 mm or over 10 m across). Then
+errors, warnings and facts.</p></li><li><strong>A rule's finding is data.</strong> In <code>--json</code> its <code>code</code> is the rule's id (<code>rule</code>), with <code>value</code>,<p><code>limit</code>, <code>unit</code>, <code>op</code> (<code>min</code>: at least; <code>max</code>: at most), <code>source</code> and <code>refs</code>: every ref of the
+feature, the most specific first (a corner's edge, then its faces). Edit from those, never from
+the message. Several failures of one rule at one feature are one finding (<code>and 2 more at this
+ref</code>); a recommendation on a figure that already fails a stricter rule there is left to
+<code>measurements.rules</code>.</p></li><li><strong>Whose limit.</strong> A limit no published guide states is cad's own floor, and its <code>source</code> says so<p>(<code>cad, its own figure: ...</code>): report it as that, never as a guide's.</p></li><li><strong>Facts.</strong> A code that is no rule's is a fact or an assumption: <code>material_declared</code> (read from<p>the part), an option assumed (<code>cnc.tools_assumed</code>, <code>resin_unknown</code>, <code>build_volume_assumed</code>,
+<code>nozzle_assumed</code>, <code>sheet.thickness_measured</code>: report it), <code>several_solids</code> (one part of several
+solids).</p></li><li><strong>The figures.</strong> <code>measurements.&lt;family&gt;.items</code> hold every feature measured (with <code>location</code>,<p><code>xyz</code> and its figures), not only the failing ones. <code>measurements.rules.outcomes</code> has one entry
+for every rule:</p>
+<div class="table"><table><thead><tr><th><code>status</code></th><th>Report it as</th></tr></thead><tbody><tr><td><code>passed</code></td><td>a pass; in <code>rules.none_found</code> it had nothing of its kind to judge: say none was found</td></tr><tr><td><code>failed</code></td><td>a failure: an error (not made as drawn) or a warning (a recommendation)</td></tr><tr><td><code>partial</code></td><td>a pass of the features it judged alone: <code>rule_partly_judged</code> names the rest</td></tr><tr><td><code>not_evaluated</code></td><td>unverified, never a pass: no limit here, or the family was not measured</td></tr><tr><td><code>not_applicable</code></td><td>nothing: the rule is for another context</td></tr></tbody></table></div></li></ul>
+<h2 id="a-shops-own-limits"><a class="anchor" href="#a-shops-own-limits" aria-hidden="true">#</a>A shop's own limits</h2>
+<p>Each process has one table of rules: general practice from published design guides (Protolabs
+Network (Hubs), Protolabs, Xometry), and cad's own floors where no guide states a limit. None is a
+shop's. What the person knows of their shop goes in as the process's options (the shop's tools,
+the printer's build volume and nozzle, the stock's thickness), and a shop's other limits are
+compared with <code>measurements.&lt;family&gt;</code>.</p>
+<p>A specification the person supplies overrides every rule: compare its numbers with the measured
+figures and cite it.</p>
+<h2 id="the-review"><a class="anchor" href="#the-review" aria-hidden="true">#</a>The review</h2>
+<p>The check is evidence, not a certification. A review says:</p>
+<ul><li><strong>the scope</strong>: the model and its id, the parts, the process, the material, and what the check was<p>told of the shop or assumed;</p></li><li><strong>the findings</strong>: each feature at its ref with the measured value, the rule with its limit and<p>source, and a specific change (the hint, with this part's numbers). Keep errors (constraints)
+and warnings (recommendations) apart;</p></li><li><strong>the coverage</strong>: the rules not evaluated, the families not measured, and the process<p>reference's <em>Review the part</em> list.</p></li></ul>
+<h2 id="check-a-redesign"><a class="anchor" href="#check-a-redesign" aria-hidden="true">#</a>Check a redesign</h2>
+<p>Edit the model's source, run it, and run the same check with the same options. The finding's code
+should be gone from its place; a new one elsewhere is the redesign's. Dropping or shrinking a
+feature the person specified to pass a check is a different design: say so.</p><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/skills/cad/references/manufacturing-review.md">Source of this page</a></p></main><nav class="toc" aria-label="On this page"><h4>On this page</h4><ul><li class="l2"><a href="#contents">Contents</a></li><li class="l2"><a href="#the-check">The check</a></li><li class="l2"><a href="#read-the-result">Read the result</a></li><li class="l2"><a href="#a-shops-own-limits">A shop's own limits</a></li><li class="l2"><a href="#the-review">The review</a></li><li class="l2"><a href="#check-a-redesign">Check a redesign</a></li></ul></nav></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../../assets/site.js" defer></script>
+</body>
+</html>

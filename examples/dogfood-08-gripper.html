@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>08-gripper · text-to-cad</title>
+<meta name="description" content="A parallel gripper: a palm block on a mounting flange, two fingers on prismatic joints sliding toward each other along X, coupled so one value drives both. Poses open and closed; finger limits from `cad model ranges`. Export: cad model export &quot;$ID&quot; out/gripper.urdf">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <button class="menu" type="button" aria-label="Menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+  <a class="brand" href="../index.html"><img src="../assets/favicon.svg" alt="" width="22" height="22">text-to-cad</a>
+  <nav class="main-nav"><a href="../docs/index.html">Docs</a><a href="../skills/cad.html">Skills</a><a href="index.html">Examples</a><a href="../gallery/index.html" aria-current="page">Gallery</a><a href="../cli/index.html">CLI</a><a class="play" href="../play/index.html">Play</a></nav>
+  <div class="search"><input type="search" placeholder="Search" aria-label="Search the docs" autocomplete="off"><div class="results" role="listbox"></div></div>
+  <button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></button>
+</header>
+<div class="docs"><aside class="sidebar" id="sidebar"><div class="group mobile-only"><h4>Site</h4><ul><li><a href="../docs/index.html">Docs</a></li><li><a href="../skills/cad.html">Skills</a></li><li><a href="index.html">Examples</a></li><li><a href="../gallery/index.html">Gallery</a></li><li><a href="../cli/index.html">CLI</a></li><li><a href="../play/index.html">Play</a></li></ul></div><div class="group"><h4>Examples</h4><ul><li><a href="index.html">All examples</a></li><li><a href="arm.html">arm</a></li><li><a href="blinky_pcb.html">blinky_pcb</a></li><li><a href="bracket.html">bracket</a></li><li><a href="enclosure.html">enclosure</a></li><li><a href="esp32_pcb.html">esp32_pcb</a></li><li><a href="fasteners.html">fasteners</a></li><li><a href="gear.html">gear</a></li><li><a href="gear_train.html">gear_train</a></li><li><a href="hinge_box.html">hinge_box</a></li><li><a href="knob.html">knob</a></li><li><a href="plate.html">plate</a></li><li><a href="spring.html">spring</a></li></ul></div><div class="group"><h4>Gallery</h4><ul><li><a href="../gallery/index.html">Prompts → models</a></li><li><a href="dogfood-01-nema17-mount.html">01-nema17-mount</a></li><li><a href="dogfood-02-pipe-tee.html">02-pipe-tee</a></li><li><a href="dogfood-03-phone-stand.html">03-phone-stand</a></li><li><a href="dogfood-04-desk-tray.html">04-desk-tray</a></li><li><a href="dogfood-05-sprocket.html">05-sprocket</a></li><li><a href="dogfood-06-living-hinge-box.html">06-living-hinge-box</a></li><li><a href="dogfood-07-sheet-bracket.html">07-sheet-bracket</a></li><li class="current"><a href="dogfood-08-gripper.html">08-gripper</a></li><li><a href="dogfood-09-bme280-breakout.html">09-bme280-breakout</a></li><li><a href="dogfood-10-printed-bolt.html">10-printed-bolt</a></li></ul></div></aside><main><h1 id="top">08-gripper</h1><p class="lede">A parallel gripper: a palm block on a mounting flange, two fingers on prismatic joints sliding toward each other along X, coupled so one value drives both. Poses open and closed; finger limits from `cad model ranges`. Export: cad model export &quot;$ID&quot; out/gripper.urdf</p><div class="actions"><a class="button primary" href="../play/index.html#code=Ly8gQSBwYXJhbGxlbCBncmlwcGVyOiBhIHBhbG0gYmxvY2sgb24gYSBtb3VudGluZyBmbGFuZ2UsIHR3byBmaW5nZXJzIG9uIHByaXNtYXRpYyBqb2ludHMgc2xpZGluZwovLyB0b3dhcmQgZWFjaCBvdGhlciBhbG9uZyBYLCBjb3VwbGVkIHNvIG9uZSB2YWx1ZSBkcml2ZXMgYm90aC4gUG9zZXMgb3BlbiBhbmQgY2xvc2VkOyBmaW5nZXIKLy8gbGltaXRzIGZyb20gYGNhZCBtb2RlbCByYW5nZXNgLiBFeHBvcnQ6IGNhZCBtb2RlbCBleHBvcnQgIiRJRCIgb3V0L2dyaXBwZXIudXJkZgppbXBvcnQgeyBhc3NlbWJseSwgYm94LCBjb3VwbGUsIGN5bGluZGVyLCBtb2RlbCwgcGFyYW0sIHByaXNtYXRpYyB9IGZyb20gIkBjYWQvc2RrIjsKCmV4cG9ydCBjb25zdCBncmlwcGVyID0gbW9kZWwoImdyaXBwZXIiLCAoKSA9PiB7CiAgY29uc3Qgc3Ryb2tlID0gcGFyYW0oInN0cm9rZSIsIDIwLCB7IG1pbjogNSwgbWF4OiA0MCwgdW5pdDogIm1tIiwgZGVzY3JpcHRpb246ICJlYWNoIGZpbmdlcidzIHRyYXZlbCIgfSk7CiAgY29uc3QgcGFsbSA9IGJveCg4MCwgMzAsIDIwLCB7IGFsaWduOiBbImNlbnRlciIsICJjZW50ZXIiLCAibWluIl0gfSkKICAgIC5mdXNlKGN5bGluZGVyKDI1LCA2LCB7IGFsaWduOiBbImNlbnRlciIsICJjZW50ZXIiLCAibWF4Il0gfSkpICAgICAgLy8gZmxhbmdlIHVuZGVyIHRoZSBwYWxtCiAgICAuZmlsbGV0KCJ8WiIsIDMpCiAgICAubGFiZWwoInBhbG0iLCB7IGNvbG9yOiAiIzRhNTU2OCIsIG1hdGVyaWFsOiAiYWx1bWludW0iIH0pOwogIC8vIGZpbmdlcnMgYnVpbHQgb3BlbjogdGhlaXIgaW5uZXIgZmFjZXMgc3Ryb2tlICsgMSBhcGFydCBmcm9tIHRoZSBjZW50cmUKICBjb25zdCBmaW5nZXIgPSAoc2lkZTogMSB8IC0xKSA9PgogICAgYm94KDgsIDIwLCA1MCwgeyBhbGlnbjogW3NpZGUgPiAwID8gIm1pbiIgOiAibWF4IiwgImNlbnRlciIsICJtaW4iXSB9KQogICAgICAudHJhbnNsYXRlKHNpZGUgKiAoc3Ryb2tlICsgMSksIDAsIDIwKQogICAgICAuY2hhbWZlcigiPloiLCAxKQogICAgICAubGFiZWwoc2lkZSA-IDAgPyAiZmluZ2VyX3IiIDogImZpbmdlcl9sIiwgeyBjb2xvcjogIiNlZDg5MzYiLCBtYXRlcmlhbDogInBvbSIgfSk7CiAgY29uc3QgcmlnaHQgPSBmaW5nZXIoMSksIGxlZnQgPSBmaW5nZXIoLTEpOwogIHJldHVybiBhc3NlbWJseSgiZ3JpcHBlciIsIFtwYWxtLCBsZWZ0LCByaWdodF0sIHsKICAgIGpvaW50czogWwogICAgICBwcmlzbWF0aWMoImxlZnQiLCB7IHBhcmVudDogcGFsbSwgY2hpbGQ6IGxlZnQsIGF4aXM6ICJYIiwgbGltaXRzOiBbMCwgc3Ryb2tlXSwgZWZmb3J0OiA0MCwgdmVsb2NpdHk6IDUwIH0pLAogICAgICBwcmlzbWF0aWMoInJpZ2h0IiwgeyBwYXJlbnQ6IHBhbG0sIGNoaWxkOiByaWdodCwgYXhpczogIi1YIiwgbGltaXRzOiBbMCwgc3Ryb2tlXSwgZWZmb3J0OiA0MCwgdmVsb2NpdHk6IDUwIH0pLAogICAgXSwKICAgIGNvdXBsaW5nczogW2NvdXBsZSgibGVmdCIsICJyaWdodCIsIDEpXSwKICAgIHBvc2VzOiB7IG9wZW46IHsgbGVmdDogMCB9LCBjbG9zZWQ6IHsgbGVmdDogc3Ryb2tlIH0gfSwKICB9KTsKfSk7CgppZiAoaW1wb3J0Lm1ldGEubWFpbikgYXdhaXQgZ3JpcHBlcigpOwo&name=08-gripper">Open in playground</a><a class="button" href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/dogfood/08-gripper.ts">View on GitHub</a><a class="button" href="../gallery/index.html">All examples</a></div><div class="figures"><figure><img src="../images/examples/dogfood-08-gripper-gripper.png" alt="gripper"><figcaption>gripper</figcaption></figure></div>
+<h2 id="source"><a class="anchor" href="#source" aria-hidden="true">#</a>Source</h2>
+<p>Run it with <code>cad run examples/dogfood/08-gripper.ts</code>.</p>
+<pre class="code" data-lang="ts"><button class="copy" type="button" aria-label="Copy">Copy</button><code><span class="t-c">// A parallel gripper: a palm block on a mounting flange, two fingers on prismatic joints sliding</span>
+<span class="t-c">// toward each other along X, coupled so one value drives both. Poses open and closed; finger</span>
+<span class="t-c">// limits from `cad model ranges`. Export: cad model export "$ID" out/gripper.urdf</span>
+<span class="t-k">import</span> { assembly, box, couple, cylinder, model, param, prismatic } <span class="t-k">from</span> <span class="t-s">"@cad/sdk"</span>;
+
+<span class="t-k">export</span> <span class="t-k">const</span> gripper = <span class="t-f">model</span>(<span class="t-s">"gripper"</span>, () =&gt; {
+  <span class="t-k">const</span> stroke = <span class="t-f">param</span>(<span class="t-s">"stroke"</span>, <span class="t-n">20</span>, { min: <span class="t-n">5</span>, max: <span class="t-n">40</span>, unit: <span class="t-s">"mm"</span>, description: <span class="t-s">"each finger's travel"</span> });
+  <span class="t-k">const</span> palm = <span class="t-f">box</span>(<span class="t-n">80</span>, <span class="t-n">30</span>, <span class="t-n">20</span>, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"min"</span>] })
+    .<span class="t-f">fuse</span>(<span class="t-f">cylinder</span>(<span class="t-n">25</span>, <span class="t-n">6</span>, { align: [<span class="t-s">"center"</span>, <span class="t-s">"center"</span>, <span class="t-s">"max"</span>] }))      <span class="t-c">// flange under the palm</span>
+    .<span class="t-f">fillet</span>(<span class="t-s">"|Z"</span>, <span class="t-n">3</span>)
+    .<span class="t-f">label</span>(<span class="t-s">"palm"</span>, { color: <span class="t-s">"#4a5568"</span>, material: <span class="t-s">"aluminum"</span> });
+  <span class="t-c">// fingers built open: their inner faces stroke + 1 apart from the centre</span>
+  <span class="t-k">const</span> finger = (side: <span class="t-n">1</span> | -<span class="t-n">1</span>) =&gt;
+    <span class="t-f">box</span>(<span class="t-n">8</span>, <span class="t-n">20</span>, <span class="t-n">50</span>, { align: [side &gt; <span class="t-n">0</span> ? <span class="t-s">"min"</span> : <span class="t-s">"max"</span>, <span class="t-s">"center"</span>, <span class="t-s">"min"</span>] })
+      .<span class="t-f">translate</span>(side * (stroke + <span class="t-n">1</span>), <span class="t-n">0</span>, <span class="t-n">20</span>)
+      .<span class="t-f">chamfer</span>(<span class="t-s">"&gt;Z"</span>, <span class="t-n">1</span>)
+      .<span class="t-f">label</span>(side &gt; <span class="t-n">0</span> ? <span class="t-s">"finger_r"</span> : <span class="t-s">"finger_l"</span>, { color: <span class="t-s">"#ed8936"</span>, material: <span class="t-s">"pom"</span> });
+  <span class="t-k">const</span> right = <span class="t-f">finger</span>(<span class="t-n">1</span>), left = <span class="t-f">finger</span>(-<span class="t-n">1</span>);
+  <span class="t-k">return</span> <span class="t-f">assembly</span>(<span class="t-s">"gripper"</span>, [palm, left, right], {
+    joints: [
+      <span class="t-f">prismatic</span>(<span class="t-s">"left"</span>, { parent: palm, child: left, axis: <span class="t-s">"X"</span>, limits: [<span class="t-n">0</span>, stroke], effort: <span class="t-n">40</span>, velocity: <span class="t-n">50</span> }),
+      <span class="t-f">prismatic</span>(<span class="t-s">"right"</span>, { parent: palm, child: right, axis: <span class="t-s">"-X"</span>, limits: [<span class="t-n">0</span>, stroke], effort: <span class="t-n">40</span>, velocity: <span class="t-n">50</span> }),
+    ],
+    couplings: [<span class="t-f">couple</span>(<span class="t-s">"left"</span>, <span class="t-s">"right"</span>, <span class="t-n">1</span>)],
+    poses: { open: { left: <span class="t-n">0</span> }, closed: { left: stroke } },
+  });
+});
+
+<span class="t-k">if</span> (<span class="t-k">import</span>.meta.main) <span class="t-k">await</span> <span class="t-f">gripper</span>();
+</code></pre><p class="edit"><a href="https://github.com/bherbruck/text-to-cad-rs/blob/main/examples/dogfood/08-gripper.ts">Source of this page</a></p></main></div>
+<footer><p>text-to-cad-rs · MIT OR Apache-2.0 · OCCT is LGPL-2.1 with the Open CASCADE exception · <a href="https://github.com/bherbruck/text-to-cad-rs">GitHub</a></p></footer>
+<script src="../assets/site.js" defer></script>
+</body>
+</html>
